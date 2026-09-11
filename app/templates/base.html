@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<script>document.documentElement.classList.add('js');</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}VDC Imóveis | Conectando você ao seu lugar ideal{% endblock %}</title>
+<meta name="description" content="Consultoria imobiliária integrada em Vitória da Conquista (BA): consultoria, engenharia civil, arquitetura e jurídico na mesma mesa. CRECI 35889.">
+<link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo-vdc.png') }}">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700&family=Hanken+Grotesk:wght@400;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+{% block extra_head %}{% endblock %}
+</head>
+<body>
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+  <div class="vdc-flash-stack" data-flash-stack>
+    {% for category, message in messages %}
+    <div class="vdc-flash vdc-flash--{{ category }}"
+         role="{{ 'alert' if category == 'error' else 'status' }}"
+         aria-live="{{ 'assertive' if category == 'error' else 'polite' }}"
+         data-flash>
+      <span>{{ message }}</span>
+      <button type="button" class="vdc-flash__close" data-flash-close aria-label="Fechar aviso">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+{% endwith %}
+
+{% block content %}{% endblock %}
+
+{% include "partials/whatsapp_button.html" %}
+{% include "partials/instagram_button.html" %}
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% block extra_scripts %}{% endblock %}
+</body>
+</html>

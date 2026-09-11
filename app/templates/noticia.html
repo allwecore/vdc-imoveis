@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}{{ post.title }} | VDC Imóveis{% endblock %}
+
+{% block content %}
+{% include "partials/header.html" %}
+
+<article class="vdc-section vdc-post">
+  <div class="vdc-container vdc-post__shell">
+    <a href="{{ url_for('news') }}" class="vdc-post__back">← Voltar para notícias</a>
+
+    <span class="vdc-news__tags vdc-post__tags">
+      <span class="vdc-news__tag vdc-news__tag--category">{{ post.category_label }}</span>
+    </span>
+    <h1 class="vdc-h1 vdc-post__title">{{ post.title }}</h1>
+    <span class="vdc-news__meta vdc-post__meta">{{ post.date_formatted }} · {{ post.reading_minutes }} min de leitura</span>
+
+    {% if post.image_path %}
+    <img class="vdc-post__cover" src="{{ url_for('static', filename=post.image_path) }}" alt="{{ post.title }}">
+    {% endif %}
+
+    {% if post.excerpt %}<p class="vdc-post__excerpt">{{ post.excerpt }}</p>{% endif %}
+
+    <div class="vdc-post__body">
+      {% for paragraph in post.body_paragraphs %}
+      <p>{{ paragraph }}</p>
+      {% endfor %}
+    </div>
+
+    <div class="vdc-post__cta">
+      <div>
+        <span class="vdc-eyebrow" style="color: var(--vdc-gold-500);">Ficou com dúvida?</span>
+        <p class="vdc-post__cta-title">Fale com um consultor da VDC</p>
+        <p class="vdc-body vdc-post__cta-text">Consultoria, engenharia, arquitetura e jurídico na mesma mesa para avaliar seu caso.</p>
+      </div>
+      <a href="{{ url_for('index') }}#contato" class="vdc-btn vdc-btn--gold">
+        Falar com um consultor
+        <svg class="vdc-icon-arrow" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </a>
+    </div>
+  </div>
+
+  {% if related %}
+  <div class="vdc-container vdc-post__related">
+    <h2 class="vdc-h3 vdc-post__related-title">Leia também</h2>
+    <div class="vdc-news__grid">
+      {% for item in related %}
+      <a href="{{ url_for('news_post', slug=item.slug) }}" class="vdc-news__card">
+        <span class="vdc-news__card-media">
+          {% if item.image_path %}
+          <img src="{{ url_for('static', filename=item.image_path) }}" alt="{{ item.title }}" loading="lazy">
+          {% else %}
+          <span class="vdc-news__placeholder" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h13a2 2 0 0 1 2 2v10a2 2 0 0 0 2 2H6a2 2 0 0 1-2-2z"/><path d="M8 9h7M8 13h7M8 17h4"/></svg>
+          </span>
+          {% endif %}
+        </span>
+        <span class="vdc-news__card-body">
+          <span class="vdc-eyebrow vdc-news__card-category">{{ item.category_label }}</span>
+          <h3 class="vdc-news__card-title">{{ item.title }}</h3>
+          <span class="vdc-news__meta">{{ item.date_formatted }} · {{ item.reading_minutes }} min</span>
+        </span>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</article>
+
+{% include "partials/footer.html" %}
+{% endblock %}

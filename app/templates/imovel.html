@@ -1,0 +1,249 @@
+{% extends "base.html" %}
+{% from "_macros.html" import property_card, property_cover_icon %}
+
+{% block title %}{{ prop.title }} | VDC Imóveis{% endblock %}
+
+{% block extra_head %}
+{% if prop.has_map %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+{% endif %}
+{% endblock %}
+
+{% block content %}
+{% include "partials/header.html" %}
+
+<article class="vdc-section vdc-detail">
+  <div class="vdc-container">
+
+    <nav class="vdc-detail__crumbs" aria-label="Você está aqui">
+      <a href="{{ url_for('index') }}">Início</a>
+      <span aria-hidden="true">/</span>
+      <a href="{{ url_for('search') }}">Imóveis</a>
+      <span aria-hidden="true">/</span>
+      <span>{{ prop.title }}</span>
+    </nav>
+
+    <div class="vdc-detail__grid">
+      <div class="vdc-detail__main">
+
+        {# Galeria: foto grande + tira de miniaturas, tudo trocado no
+           navegador (property-gallery.js) — os dados de cada foto vêm
+           de prop.photos (1:N com o imóvel, ver PropertyPhoto em
+           models.py), não mais de um image_path único. data-photos
+           carrega a lista COMPLETA (url de exibição de cada foto), pra
+           setas e lightbox navegarem por todas mesmo com a tira
+           mostrando só as 4 primeiras + "ver todas". #}
+        <div class="vdc-gallery{% if not prop.photos %} vdc-gallery--empty{% endif %}"
+             data-gallery
+             data-gallery-title="{{ prop.title }}"
+             {# photo.url é o caminho salvo no banco (sem o /static/ na
+                frente) — precisa passar por url_for aqui, senão o JS
+                troca a foto principal pra um src quebrado. map()+tojson
+                sozinho dumpava o valor cru; por isso o loop manual. #}
+             data-photos='[{% for photo in prop.photos %}{{ url_for("static", filename=photo.url) | tojson }}{% if not loop.last %},{% endif %}{% endfor %}]'>
+
+          <div class="vdc-gallery__main vdc-property__cover--{{ prop.cover_tone }}">
+            {% if prop.photos %}
+            <img class="vdc-gallery__main-img" data-gallery-main-img
+                 src="{{ url_for('static', filename=prop.photos[0].url) }}"
+                 alt="{{ prop.title }} — foto 1 de {{ prop.photos|length }}"
+                 tabindex="0" role="button" aria-label="Ver foto em tela cheia">
+            {% else %}
+            {{ property_cover_icon(prop.property_type) }}
+            {% endif %}
+
+            <span class="vdc-chip vdc-detail__cover-chip">{{ prop.status_label }}</span>
+
+            {% if prop.photos|length > 1 %}
+            <button type="button" class="vdc-gallery__nav vdc-gallery__nav--prev" data-gallery-prev aria-label="Foto anterior">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
+            </button>
+            <button type="button" class="vdc-gallery__nav vdc-gallery__nav--next" data-gallery-next aria-label="Próxima foto">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+            </button>
+            <span class="vdc-gallery__counter" data-gallery-counter>1 / {{ prop.photos|length }}</span>
+            {% endif %}
+
+            {% if prop.photos %}
+            <button type="button" class="vdc-gallery__expand" data-gallery-open data-index="0" aria-label="Ver foto em tela cheia">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M16 21h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+              <span class="vdc-gallery__expand-label">Tela cheia</span>
+            </button>
+            {% endif %}
+          </div>
+
+          {% if prop.photos|length > 1 %}
+          <div class="vdc-gallery__thumbs">
+            {% for photo in prop.photos[1:5] %}
+            <button type="button" class="vdc-gallery__thumb" data-gallery-thumb data-index="{{ loop.index }}">
+              <img src="{{ url_for('static', filename=photo.thumb_url or photo.url) }}" alt="{{ prop.title }} — miniatura {{ loop.index + 1 }}" loading="lazy">
+            </button>
+            {% endfor %}
+            {% if prop.photos|length > 5 %}
+            <button type="button" class="vdc-gallery__thumb vdc-gallery__thumb--more" data-gallery-open data-index="5" aria-label="Ver todas as {{ prop.photos|length }} fotos">
+              <img src="{{ url_for('static', filename=prop.photos[5].thumb_url or prop.photos[5].url) }}" alt="" loading="lazy">
+              <span>+{{ prop.photos|length - 5 }} fotos</span>
+            </button>
+            {% endif %}
+          </div>
+          {% endif %}
+        </div>
+
+        <div class="vdc-property__tags vdc-detail__tags">
+          {% if prop.featured %}<span class="vdc-property__tag vdc-property__tag--featured">Destaque</span>{% endif %}
+          <span class="vdc-property__tag vdc-property__tag--type">{{ prop.type_label }}</span>
+        </div>
+
+        <h1 class="vdc-h1 vdc-detail__title">{{ prop.title }}</h1>
+        <p class="vdc-detail__location">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          {{ prop.neighborhood }} · {{ prop.city }} - {{ prop.state }}
+        </p>
+
+        <dl class="vdc-detail__specs">
+          <div class="vdc-detail__spec">
+            <dt>Área</dt>
+            <dd>{{ prop.area_m2|round|int }} m²</dd>
+          </div>
+          <div class="vdc-detail__spec">
+            <dt>Quartos</dt>
+            <dd>{{ prop.bedrooms or '—' }}</dd>
+          </div>
+          <div class="vdc-detail__spec">
+            <dt>Vagas</dt>
+            <dd>{{ prop.parking_spots or '—' }}</dd>
+          </div>
+          <div class="vdc-detail__spec">
+            <dt>Tipo</dt>
+            <dd>{{ prop.type_label }}</dd>
+          </div>
+        </dl>
+
+        {% if prop.description_paragraphs %}
+        <section class="vdc-detail__block">
+          <h2 class="vdc-h3 vdc-detail__block-title">Sobre o imóvel</h2>
+          <div class="vdc-detail__text">
+            {% for paragraph in prop.description_paragraphs %}
+            <p>{{ paragraph }}</p>
+            {% endfor %}
+          </div>
+        </section>
+        {% endif %}
+
+        {% if prop.full_address or prop.has_map %}
+        <section class="vdc-detail__block">
+          <h2 class="vdc-h3 vdc-detail__block-title">Localização</h2>
+
+          {% if prop.full_address %}
+          <p class="vdc-detail__address">{{ prop.full_address }}</p>
+          {% endif %}
+
+          {% if prop.has_map %}
+          <p class="vdc-propmap__precision">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>
+          {{ prop.map_precision_label }}
+          </p>
+
+          {# Coordenadas vêm do banco. A página nunca geocodifica: por mais
+             visitas que receba, não sai uma requisição sequer pro serviço. #}
+          <div class="vdc-propmap"
+               data-property-map
+               data-lat="{{ prop.latitude }}"
+               data-lng="{{ prop.longitude }}"
+               data-radius="{{ prop.map_radius_m }}"
+               data-title="{{ prop.title }}"
+               data-precision="{{ prop.map_precision }}"
+               role="img"
+               aria-label="Mapa mostrando a localização aproximada do imóvel em {{ prop.neighborhood }}, {{ prop.city }}">
+          </div>
+
+          <p class="vdc-propmap__note">
+            Mapa © colaboradores do
+            <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>.
+            O marcador indica a região do imóvel e não substitui a visita.
+          </p>
+          {% endif %}
+        </section>
+        {% endif %}
+      </div>
+
+      <aside class="vdc-detail__aside">
+        <div class="vdc-detail__pricebox">
+          <span class="vdc-eyebrow">{{ prop.status_label }}</span>
+          <strong class="vdc-detail__price">{{ prop.price_formatted }}</strong>
+          <p class="vdc-small vdc-detail__price-note">
+            {{ prop.area_m2|round|int }} m² · {{ prop.neighborhood }}
+          </p>
+
+          <a href="{{ url_for('index') }}#contato" class="vdc-btn vdc-btn--primary vdc-detail__cta">
+            Falar com um consultor
+            <svg class="vdc-icon-arrow" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </a>
+
+          {% if whatsapp_number %}
+          <a class="vdc-btn vdc-btn--whatsapp vdc-detail__cta"
+             href="https://wa.me/{{ whatsapp_number }}?text={{ ('Olá! Tenho interesse no imóvel "' ~ prop.title ~ '" (' ~ prop.neighborhood ~ ') anunciado no site da VDC Imóveis.') | urlencode }}"
+             target="_blank" rel="noopener">
+            Chamar no WhatsApp
+          </a>
+          {% endif %}
+
+          <p class="vdc-small vdc-detail__aside-note">
+            Consultoria, engenharia civil, arquitetura e jurídico na mesma mesa antes de você assinar.
+          </p>
+        </div>
+
+        <a href="{{ url_for('search') }}" class="vdc-detail__back">← Ver todos os imóveis</a>
+      </aside>
+    </div>
+
+    {% if similares %}
+    <section class="vdc-detail__related">
+      <h2 class="vdc-h3 vdc-detail__block-title">Imóveis parecidos</h2>
+      <div class="vdc-properties">
+        {% for item in similares %}
+        {{ property_card(item) }}
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+  </div>
+</article>
+
+{% if prop.photos %}
+{# Uma instância só, reaproveitada pra qualquer foto que for aberta —
+   property-gallery.js troca só o src/contador ao navegar. #}
+<div class="vdc-lightbox" data-lightbox hidden>
+  <div class="vdc-lightbox__backdrop" data-lightbox-close></div>
+  <button type="button" class="vdc-lightbox__close" data-lightbox-close aria-label="Fechar visualização em tela cheia">
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+  </button>
+  {% if prop.photos|length > 1 %}
+  <button type="button" class="vdc-lightbox__nav vdc-lightbox__nav--prev" data-lightbox-prev aria-label="Foto anterior">
+    <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
+  </button>
+  <button type="button" class="vdc-lightbox__nav vdc-lightbox__nav--next" data-lightbox-next aria-label="Próxima foto">
+    <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+  </button>
+  {% endif %}
+  <figure class="vdc-lightbox__figure">
+    <img class="vdc-lightbox__img" data-lightbox-img src="" alt="">
+    {% if prop.photos|length > 1 %}
+    <figcaption class="vdc-lightbox__counter" data-lightbox-counter></figcaption>
+    {% endif %}
+  </figure>
+</div>
+{% endif %}
+
+{% include "partials/footer.html" %}
+{% endblock %}
+
+{% block extra_scripts %}
+{% if prop.photos %}
+<script src="{{ url_for('static', filename='js/property-gallery.js') }}"></script>
+{% endif %}
+{% if prop.has_map %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="{{ url_for('static', filename='js/property-map.js') }}"></script>
+{% endif %}
+{% endblock %}

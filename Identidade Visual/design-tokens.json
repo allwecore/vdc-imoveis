@@ -1,0 +1,168 @@
+{
+  "$schema": "https://design-tokens.org/schema.json",
+  "meta": {
+    "brand": "VDC IMÓVEIS",
+    "version": "1.0.0",
+    "date": "2026-08",
+    "locale": "pt-BR",
+    "source": "Cores amostradas do logotipo e do site vdcimoveis",
+    "tagline": "Conectando você ao seu lugar ideal.",
+    "credential": "CRECI 35889",
+    "city": "Vitória da Conquista - BA"
+  },
+
+  "color": {
+    "navy": {
+      "900": { "value": "#152B43", "comment": "Monograma do logo. Fundos institucionais escuros." },
+      "700": { "value": "#283B62", "comment": "COR-MÃE DA MARCA. Títulos, faixas, botão primário." },
+      "500": { "value": "#5272B2", "comment": "Estado ativo, links, hover." },
+      "300": { "value": "#8FA3C8", "comment": "Ícones sobre navy, bordas sutis." },
+      "100": { "value": "#E7ECF5", "comment": "Fundo de bloco, chip, tabela zebrada." }
+    },
+    "gold": {
+      "300": { "value": "#F2D376", "comment": "Brilho do gradiente metálico. Nunca sozinho." },
+      "500": { "value": "#C9A44E", "comment": "Cor de destaque. Fios, ícones, selos, preço." },
+      "700": { "value": "#8F7534", "comment": "Sombra do gradiente metálico." }
+    },
+    "sand": {
+      "400": { "value": "#CBB492", "comment": "Ícones de linha. Decorativo apenas." },
+      "100": { "value": "#F5EFE6", "comment": "Fundo quente alternativo." }
+    },
+    "neutral": {
+      "white": { "value": "#FFFFFF" },
+      "off-white": { "value": "#F7F8FA" },
+      "gray-400": { "value": "#C9CED8", "comment": "Bordas, divisores, placeholder." },
+      "gray-600": { "value": "#616E89", "comment": "Texto secundário. AA sobre branco (5,1:1)." },
+      "ink": { "value": "#1A1F2B", "comment": "Texto principal em fundo claro." }
+    },
+    "functional": {
+      "success": { "value": "#1F7A4C" },
+      "alert": { "value": "#B4472E", "comment": "Terracota, não vermelho puro." },
+      "whatsapp": { "value": "#25D366", "comment": "Marca de terceiro. Não alterar." }
+    },
+    "gradient": {
+      "metal": {
+        "value": "linear-gradient(135deg, #8F7534 0%, #C9A44E 35%, #F2D376 55%, #C9A44E 78%, #8F7534 100%)",
+        "comment": "Exclusivo do arco do logo e de selos. Proibido em fundo, botão ou texto."
+      },
+      "photo-veil": {
+        "value": "linear-gradient(180deg, rgba(21,43,67,0) 0%, rgba(21,43,67,0.85) 100%)",
+        "comment": "Véu para texto sobre fotografia."
+      }
+    },
+    "usage-ratio": { "neutral": "60%", "navy": "30%", "gold-sand": "10%" }
+  },
+
+  "contrast": {
+    "navy-700_on_white": { "value": 11.1, "level": "AAA", "use": "livre" },
+    "gray-600_on_white": { "value": 5.1, "level": "AA", "use": "texto corrido" },
+    "gold-500_on_navy-700": { "value": 4.7, "level": "AA-large", "use": "somente >=24px, ícones, fios" },
+    "gold-500_on_white": { "value": 2.4, "level": "fail", "use": "decorativo apenas" },
+    "sand-400_on_white": { "value": 2.0, "level": "fail", "use": "ícone decorativo apenas" }
+  },
+
+  "typography": {
+    "family": {
+      "display": { "value": "Archivo, 'Arial Black', Arial, sans-serif", "weights": [600, 700] },
+      "body": { "value": "Lato, 'Segoe UI', Arial, sans-serif", "weights": [400, 600, 700] },
+      "data": { "value": "'IBM Plex Mono', Consolas, 'Courier New', monospace", "weights": [500] }
+    },
+    "scale": {
+      "display": { "size": "61px", "family": "display", "weight": 700, "lineHeight": 1.05, "tracking": "-0.02em" },
+      "h1":      { "size": "49px", "family": "display", "weight": 700, "lineHeight": 1.1,  "tracking": "-0.02em" },
+      "h2":      { "size": "39px", "family": "display", "weight": 700, "lineHeight": 1.15, "tracking": "-0.01em" },
+      "h3":      { "size": "31px", "family": "display", "weight": 600, "lineHeight": 1.2,  "tracking": "0" },
+      "h4":      { "size": "25px", "family": "display", "weight": 600, "lineHeight": 1.25, "tracking": "0" },
+      "eyebrow": { "size": "13px", "family": "display", "weight": 600, "lineHeight": 1.2,  "tracking": "0.14em", "transform": "uppercase" },
+      "lead":    { "size": "19px", "family": "body",    "weight": 400, "lineHeight": 1.6 },
+      "body":    { "size": "16px", "family": "body",    "weight": 400, "lineHeight": 1.65 },
+      "small":   { "size": "14px", "family": "body",    "weight": 400, "lineHeight": 1.5 },
+      "data":    { "size": "25px", "family": "data",    "weight": 500, "lineHeight": 1.2,  "tracking": "0.02em" },
+      "caption": { "size": "12px", "family": "data",    "weight": 500, "lineHeight": 1.4,  "tracking": "0.1em", "transform": "uppercase" }
+    },
+    "rules": {
+      "uppercaseMaxWords": 5,
+      "measureChars": "60-75",
+      "maxDisplayWeightsPerPiece": 2,
+      "minInputFontSizeMobile": "16px"
+    },
+    "googleFontsUrl": "https://fonts.googleapis.com/css2?family=Archivo:wght@600;700&family=Lato:wght@400;600;700&family=IBM+Plex+Mono:wght@500&display=swap"
+  },
+
+  "space": {
+    "base": "4px",
+    "scale": ["4px","8px","12px","16px","24px","32px","48px","64px","96px","128px","160px"]
+  },
+
+  "layout": {
+    "maxWidth": "1200px",
+    "columns": { "desktop": 12, "tablet": 8, "mobile": 4 },
+    "gutter": "24px",
+    "margin": { "mobile": "24px", "tablet": "48px", "desktop": "80px" },
+    "sectionPadding": { "mobile": "48px", "tablet": "64px", "desktop": "96px" },
+    "breakpoints": { "sm": "480px", "md": "768px", "lg": "1024px", "xl": "1280px" }
+  },
+
+  "radius": {
+    "none": { "value": "0", "use": "faixas, seções, imagens de destaque" },
+    "sm": { "value": "4px", "use": "botões, inputs, cards, chips" },
+    "full": { "value": "9999px", "use": "foto-retrato, avatar, selo" }
+  },
+
+  "shadow": {
+    "sm": { "value": "0 1px 2px rgba(21,43,67,.08)" },
+    "md": { "value": "0 4px 16px rgba(21,43,67,.10)" },
+    "lg": { "value": "0 16px 48px rgba(21,43,67,.14)" }
+  },
+
+  "motion": {
+    "duration": { "fast": "160ms", "base": "400ms", "slow": "900ms" },
+    "easing": { "standard": "cubic-bezier(.2,.8,.2,1)" },
+    "reducedMotion": "obrigatório: prefers-reduced-motion desliga tudo"
+  },
+
+  "component": {
+    "button": {
+      "height": "48px", "paddingX": "32px", "radius": "4px",
+      "font": "Archivo 600 15px uppercase, tracking 0.06em",
+      "variants": {
+        "primary":   { "bg": "#283B62", "text": "#FFFFFF" },
+        "secondary": { "bg": "transparent", "text": "#283B62", "border": "1.5px solid #283B62" },
+        "gold":      { "bg": "#C9A44E", "text": "#152B43", "limit": "um por tela" },
+        "whatsapp":  { "bg": "#25D366", "text": "#FFFFFF" }
+      },
+      "focus": "outline 2px #C9A44E, offset 2px"
+    },
+    "propertyCard": {
+      "image": "4:3, radius 0",
+      "border": "1px solid #C9CED8",
+      "shadow": "sm",
+      "hover": "shadow md + border #C9A44E + translateY(-2px)",
+      "priceStyle": "data / IBM Plex Mono 500 / #283B62",
+      "goldRule": "2px x 40px #C9A44E acima do preço"
+    },
+    "seal": {
+      "shape": "circle", "bg": "#152B43", "ring": "1.5px #C9A44E",
+      "text": "IBM Plex Mono uppercase #FFFFFF",
+      "examples": ["CRECI 35889", "LAUDO TÉCNICO", "ASSESSORIA JURÍDICA"]
+    },
+    "input": {
+      "height": "48px", "radius": "4px", "border": "1px solid #C9CED8",
+      "fontSize": "16px", "focus": "border #5272B2 + ring 2px #C9A44E"
+    }
+  },
+
+  "social": {
+    "sizes": {
+      "square": "1080x1080",
+      "portrait": "1080x1350",
+      "story": "1080x1920",
+      "highlightCover": "1080x1080"
+    },
+    "safeMargin": "80px",
+    "footerBarHeight": "160px",
+    "titleSize": "72-96px",
+    "arcWatermarkOpacity": 0.06,
+    "gridRotation": ["imóvel", "institucional/técnico", "equipe/bastidor"]
+  }
+}

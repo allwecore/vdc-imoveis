@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "vdc-imoveis-flask",
+      "runtimeExecutable": "C:/Users/Administrador/AppData/Local/Microsoft/WindowsApps/PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0/python.exe",
+      "runtimeArgs": ["C:/Users/Administrador/Downloads/Vdc Imoveis/app/app.py"],
+      "port": 5000
+    }
+  ]
+}

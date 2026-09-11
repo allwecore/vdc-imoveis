@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Login · Painel VDC Imóveis</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700&family=Hanken+Grotesk:wght@400;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+</head>
+<body class="vdc-login">
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+  <div class="vdc-flash-stack" data-flash-stack>
+    {% for category, message in messages %}
+    <div class="vdc-flash vdc-flash--{{ category }}"
+         role="{{ 'alert' if category == 'error' else 'status' }}"
+         aria-live="{{ 'assertive' if category == 'error' else 'polite' }}"
+         data-flash>
+      <span>{{ message }}</span>
+      <button type="button" class="vdc-flash__close" data-flash-close aria-label="Fechar aviso">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+{% endwith %}
+
+<div class="vdc-login__shell">
+  <div class="vdc-login__brand">
+    <svg class="vdc-login__waves" viewBox="0 0 460 640" preserveAspectRatio="none" aria-hidden="true">
+      <g stroke="rgba(255,255,255,.16)" stroke-width="1">
+        <circle cx="460" cy="0" r="70"/>
+        <circle cx="460" cy="0" r="120"/>
+        <circle cx="460" cy="0" r="170"/>
+        <circle cx="460" cy="0" r="220"/>
+        <circle cx="460" cy="0" r="270"/>
+        <circle cx="460" cy="0" r="320"/>
+      </g>
+      <g stroke="rgba(242,211,118,.28)" stroke-width="1">
+        <circle cx="0" cy="640" r="70"/>
+        <circle cx="0" cy="640" r="120"/>
+        <circle cx="0" cy="640" r="170"/>
+        <circle cx="0" cy="640" r="220"/>
+        <circle cx="0" cy="640" r="270"/>
+        <circle cx="0" cy="640" r="320"/>
+      </g>
+    </svg>
+    <div class="vdc-login__logo-badge">
+      <img src="{{ url_for('static', filename='img/logo-vdc.png') }}" alt="VDC Imóveis" class="vdc-login__logo">
+    </div>
+    <p class="vdc-login__tagline">Consultoria, engenharia e jurídico na mesma mesa.</p>
+    <span class="vdc-login__badge">CRECI 35889 · Vitória da Conquista - BA</span>
+  </div>
+
+  <div class="vdc-login__form-panel">
+    <span class="vdc-eyebrow">Painel administrativo</span>
+    <h1 class="vdc-h2" style="margin-top:8px;">Entrar</h1>
+    <p class="vdc-body" style="margin-top:8px;">Acesso restrito à equipe VDC.</p>
+
+    <form method="post" action="{{ url_for('admin_login') }}" style="margin-top: var(--vdc-space-6);">
+      <input type="hidden" name="next" value="{{ next }}">
+      <div class="vdc-field vdc-field--full">
+        <span class="vdc-field__icon">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+        </span>
+        <span class="vdc-field__body">
+          <label for="password">Senha</label>
+          <input class="vdc-field__input" type="password" id="password" name="password" required autofocus placeholder="••••••••">
+        </span>
+      </div>
+      <label class="vdc-toggle vdc-login__show-toggle">
+        <input type="checkbox" data-toggle-password="password">
+        <span class="vdc-toggle__track"><span class="vdc-toggle__thumb"></span></span>
+        <span class="vdc-toggle__label">Mostrar senha</span>
+      </label>
+      <button type="submit" class="vdc-btn vdc-btn--gold" style="width:100%; margin-top:var(--vdc-space-5); justify-content:center;">
+        Entrar no painel
+        <svg class="vdc-icon-arrow" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </button>
+    </form>
+
+    <a href="{{ url_for('index') }}" class="vdc-login__back">← Voltar para o site</a>
+  </div>
+</div>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

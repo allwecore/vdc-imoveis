@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<script>document.documentElement.classList.add('js');</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin · Equipe | VDC Imóveis</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700&family=Hanken+Grotesk:wght@400;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+</head>
+<body class="vdc-admin">
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+  <div class="vdc-flash-stack" data-flash-stack>
+    {% for category, message in messages %}
+    <div class="vdc-flash vdc-flash--{{ category }}"
+         role="{{ 'alert' if category == 'error' else 'status' }}"
+         aria-live="{{ 'assertive' if category == 'error' else 'polite' }}"
+         data-flash>
+      <span>{{ message }}</span>
+      <button type="button" class="vdc-flash__close" data-flash-close aria-label="Fechar aviso">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+{% endwith %}
+
+<div class="vdc-admin__bar">
+  <div class="vdc-container vdc-admin__bar-inner">
+    <nav class="vdc-admin__nav" aria-label="Seções do admin">
+      <a href="{{ url_for('admin_properties') }}">Imóveis</a>
+      <a href="{{ url_for('admin_hero') }}">Hero</a>
+      <a href="{{ url_for('admin_news') }}">Notícias</a>
+      <a href="{{ url_for('admin_about') }}">Quem somos</a>
+      <a href="{{ url_for('admin_team') }}" class="is-current">Equipe</a>
+      <a href="{{ url_for('admin_settings') }}">Configurações</a>
+      <form action="{{ url_for('admin_logout') }}" method="post" class="vdc-admin__nav-logout">
+        <button type="submit">Sair</button>
+      </form>
+    </nav>
+    <div class="vdc-admin__bar-head">
+      <div>
+        <span class="vdc-eyebrow vdc-admin__eyebrow">Painel VDC</span>
+        <h1 class="vdc-h2 vdc-admin__title">Equipe</h1>
+        <p class="vdc-body vdc-admin__subtitle">Quem aparece na seção "Quem está na mesa" da home — nome, função e registro profissional.</p>
+      </div>
+      <a href="{{ url_for('admin_team_new') }}" class="vdc-btn vdc-btn--gold">
+        Novo integrante
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="vdc-container vdc-admin__content">
+  {% if members %}
+  <p class="vdc-eyebrow vdc-admin__section-label">{{ members|length }} integrante{{ 's' if members|length != 1 else '' }}</p>
+
+  <div class="vdc-admin__grid">
+    {% for member in members %}
+    <div class="vdc-admin__card">
+      <div class="vdc-admin__card-body" style="padding-top: var(--vdc-space-5);">
+        <div style="display:flex; align-items:center; gap: var(--vdc-space-4); margin-bottom: var(--vdc-space-3);">
+          <div class="vdc-team__avatar{{ ' vdc-team__avatar--placeholder' if member.placeholder else '' }}" style="width:56px; height:56px; font-size:16px; flex-shrink:0;">{{ member.initials }}</div>
+          <div style="min-width:0;">
+            <span class="vdc-admin__table-title" style="display:block;">{{ member.name }}</span>
+            <span class="vdc-small vdc-admin__card-desc">{{ member.role }}{% if member.credential %} · {{ member.credential }}{% endif %}</span>
+          </div>
+        </div>
+        {% if member.placeholder %}<span class="vdc-team__tag">Vaga em preenchimento</span>{% endif %}
+        <div class="vdc-admin__actions">
+          <form action="{{ url_for('admin_team_move', member_id=member.id) }}" method="post">
+            <input type="hidden" name="direction" value="up">
+            <button type="submit" class="vdc-admin__action vdc-admin__action--icon" aria-label="Mover para cima">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+            </button>
+          </form>
+          <form action="{{ url_for('admin_team_move', member_id=member.id) }}" method="post">
+            <input type="hidden" name="direction" value="down">
+            <button type="submit" class="vdc-admin__action vdc-admin__action--icon" aria-label="Mover para baixo">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+            </button>
+          </form>
+          <a href="{{ url_for('admin_team_edit', member_id=member.id) }}" class="vdc-admin__action">Editar</a>
+          <form action="{{ url_for('admin_team_delete', member_id=member.id) }}" method="post" onsubmit="return confirm('Remover {{ member.name }} da equipe?');">
+            <button type="submit" class="vdc-admin__action vdc-admin__action--danger">Excluir</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="vdc-body">Nenhum integrante cadastrado ainda. Clique em "Novo integrante" para começar.</p>
+  {% endif %}
+
+  <a href="{{ url_for('index') }}" class="vdc-btn vdc-btn--secondary vdc-admin__back">← Voltar para a home</a>
+</div>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

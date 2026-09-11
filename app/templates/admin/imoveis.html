@@ -1,0 +1,147 @@
+{% from "_macros.html" import property_cover_icon %}
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<script>document.documentElement.classList.add('js');</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin · Imóveis | VDC Imóveis</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700&family=Hanken+Grotesk:wght@400;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+</head>
+<body class="vdc-admin">
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+  <div class="vdc-flash-stack" data-flash-stack>
+    {% for category, message in messages %}
+    <div class="vdc-flash vdc-flash--{{ category }}"
+         role="{{ 'alert' if category == 'error' else 'status' }}"
+         aria-live="{{ 'assertive' if category == 'error' else 'polite' }}"
+         data-flash>
+      <span>{{ message }}</span>
+      <button type="button" class="vdc-flash__close" data-flash-close aria-label="Fechar aviso">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+{% endwith %}
+
+<div class="vdc-admin__bar">
+  <div class="vdc-container vdc-admin__bar-inner">
+    <nav class="vdc-admin__nav" aria-label="Seções do admin">
+      <a href="{{ url_for('admin_properties') }}" class="is-current">Imóveis</a>
+      <a href="{{ url_for('admin_hero') }}">Hero</a>
+      <a href="{{ url_for('admin_news') }}">Notícias</a>
+      <a href="{{ url_for('admin_about') }}">Quem somos</a>
+      <a href="{{ url_for('admin_team') }}">Equipe</a>
+      <a href="{{ url_for('admin_settings') }}">Configurações</a>
+      <form action="{{ url_for('admin_logout') }}" method="post" class="vdc-admin__nav-logout">
+        <button type="submit">Sair</button>
+      </form>
+    </nav>
+    <div class="vdc-admin__bar-head">
+      <div>
+        <span class="vdc-eyebrow vdc-admin__eyebrow">Painel VDC</span>
+        <h1 class="vdc-h2 vdc-admin__title">Imóveis cadastrados</h1>
+        <p class="vdc-body vdc-admin__subtitle">A carteira que aparece no site: busca, "Imóveis em destaque" e a página de resultados.</p>
+      </div>
+      <a href="{{ url_for('admin_properties_new') }}" class="vdc-btn vdc-btn--gold">
+        Novo imóvel
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="vdc-container vdc-admin__content">
+  <div class="vdc-admin__stats">
+    <div class="vdc-admin__stat">
+      <strong>{{ total_count }}</strong>
+      <span>{{ 'Imóvel cadastrado' if total_count == 1 else 'Imóveis cadastrados' }}</span>
+    </div>
+    <div class="vdc-admin__stat">
+      <strong>{{ featured_count }}</strong>
+      <span>Em destaque na home</span>
+    </div>
+  </div>
+
+  {% if properties %}
+  <div class="vdc-admin__cards">
+    {% for p in properties %}
+    <article class="vdc-admin__prop-card">
+      <div class="vdc-admin__prop-photo vdc-admin__prop-photo--{{ p.cover_tone }}">
+        {% if p.image_path %}
+        <img src="{{ url_for('static', filename=p.image_path) }}" alt="">
+        {% else %}
+        {{ property_cover_icon(p.property_type) }}
+        {% endif %}
+        <span class="vdc-chip vdc-admin__chip--{{ p.status }} vdc-admin__prop-status">{{ p.status_label }}</span>
+        <form action="{{ url_for('admin_properties_toggle_featured', property_id=p.id) }}" method="post" class="vdc-admin__prop-star-form">
+          <button type="submit" class="vdc-admin__prop-star {{ 'is-featured' if p.featured }}" aria-label="{{ 'Remover destaque' if p.featured else 'Destacar na home' }}" aria-pressed="{{ 'true' if p.featured else 'false' }}">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="{{ 'currentColor' if p.featured else 'none' }}" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l2.2 5.6 6 .5-4.6 3.9 1.5 5.8L12 14.9 6.9 17.8l1.5-5.8-4.6-3.9 6-.5z"/></svg>
+          </button>
+        </form>
+      </div>
+      <div class="vdc-admin__prop-body">
+        <div>
+          <span class="vdc-admin__table-title">{{ p.title }}</span>
+          <span class="vdc-small vdc-admin__table-sub">{{ p.neighborhood }} · {{ p.city }}</span>
+          <span class="vdc-small vdc-admin__prop-type">{{ p.type_label }}</span>
+          <div class="vdc-admin__prop-specs">
+            <span><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="6" rx="1"/><rect x="5" y="8" width="5" height="4" rx="1"/><path d="M3 17v3M21 17v3"/></svg>{{ p.bedrooms or '—' }}</span>
+            <span><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M10 16V8h3a2.5 2.5 0 0 1 0 5h-3"/></svg>{{ p.parking_spots or '—' }}</span>
+            <span><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M16 21h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>{{ p.area_m2|round|int }} m²</span>
+          </div>
+          <span class="vdc-small vdc-admin__geo {{ 'vdc-admin__geo--off' if not p.has_map }}">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            {% if p.has_map %}{{ p.map_precision_label }}{% else %}Sem localização no mapa — o mapa não aparece na página deste imóvel.{% endif %}
+          </span>
+        </div>
+        <div class="vdc-admin__prop-footer">
+          <span class="vdc-admin__table-price">{{ p.price_formatted }}</span>
+          <div class="vdc-admin__table-actions">
+            <a href="{{ url_for('property_detail', property_id=p.id) }}" class="vdc-admin__action" target="_blank" rel="noopener">Ver</a>
+            <a href="{{ url_for('admin_properties_edit', property_id=p.id) }}" class="vdc-admin__action">Editar</a>
+            <form action="{{ url_for('admin_properties_geocode', property_id=p.id) }}" method="post">
+              <button type="submit" class="vdc-admin__action">{{ 'Refazer mapa' if p.has_map else 'Localizar no mapa' }}</button>
+            </form>
+            <form action="{{ url_for('admin_properties_delete', property_id=p.id) }}" method="post" onsubmit="return confirm('Excluir este imóvel definitivamente?');">
+              <button type="submit" class="vdc-admin__action vdc-admin__action--danger">Excluir</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+
+  {% if pagination.pages > 1 %}
+  <nav class="vdc-admin__pagination" aria-label="Paginação de imóveis">
+    {% if pagination.has_prev %}
+    <a href="{{ url_for('admin_properties', page=pagination.prev_num) }}" class="vdc-admin__action vdc-admin__action--icon" aria-label="Página anterior">‹</a>
+    {% else %}
+    <span class="vdc-admin__action vdc-admin__action--icon is-disabled" aria-disabled="true">‹</span>
+    {% endif %}
+    <span class="vdc-admin__pagination-current">{{ pagination.page }}</span>
+    {% if pagination.has_next %}
+    <a href="{{ url_for('admin_properties', page=pagination.next_num) }}" class="vdc-admin__action vdc-admin__action--icon" aria-label="Próxima página">›</a>
+    {% else %}
+    <span class="vdc-admin__action vdc-admin__action--icon is-disabled" aria-disabled="true">›</span>
+    {% endif %}
+  </nav>
+  {% endif %}
+  {% else %}
+  <div class="vdc-admin__empty-wrap">
+    <p class="vdc-body vdc-admin__empty">Nenhum imóvel cadastrado ainda. Clique em "Novo imóvel" para começar.</p>
+  </div>
+  {% endif %}
+
+  <a href="{{ url_for('index') }}" class="vdc-btn vdc-btn--secondary vdc-admin__back">← Voltar para a home</a>
+</div>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

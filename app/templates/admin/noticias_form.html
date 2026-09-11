@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<script>document.documentElement.classList.add('js');</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin · {{ 'Editar notícia' if post else 'Nova notícia' }} | VDC Imóveis</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700&family=Hanken+Grotesk:wght@400;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+</head>
+<body class="vdc-admin">
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+  <div class="vdc-flash-stack" data-flash-stack>
+    {% for category, message in messages %}
+    <div class="vdc-flash vdc-flash--{{ category }}"
+         role="{{ 'alert' if category == 'error' else 'status' }}"
+         aria-live="{{ 'assertive' if category == 'error' else 'polite' }}"
+         data-flash>
+      <span>{{ message }}</span>
+      <button type="button" class="vdc-flash__close" data-flash-close aria-label="Fechar aviso">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+{% endwith %}
+
+<div class="vdc-admin__bar">
+  <div class="vdc-container vdc-admin__bar-inner">
+    <nav class="vdc-admin__nav" aria-label="Seções do admin">
+      <a href="{{ url_for('admin_properties') }}">Imóveis</a>
+      <a href="{{ url_for('admin_hero') }}">Hero</a>
+      <a href="{{ url_for('admin_news') }}" class="is-current">Notícias</a>
+      <a href="{{ url_for('admin_about') }}">Quem somos</a>
+      <a href="{{ url_for('admin_team') }}">Equipe</a>
+      <a href="{{ url_for('admin_settings') }}">Configurações</a>
+      <form action="{{ url_for('admin_logout') }}" method="post" class="vdc-admin__nav-logout">
+        <button type="submit">Sair</button>
+      </form>
+    </nav>
+    <span class="vdc-eyebrow vdc-admin__eyebrow">{{ 'Editando' if post else 'Nova publicação' }}</span>
+    <h1 class="vdc-h2 vdc-admin__title">{{ post.title if post else 'Escrever notícia' }}</h1>
+    <p class="vdc-body vdc-admin__subtitle">Aparece na aba "Notícias" do site assim que estiver publicada.</p>
+  </div>
+</div>
+
+<div class="vdc-container vdc-admin__content">
+  <form class="vdc-wizard" style="margin: 0;" method="post" enctype="multipart/form-data"
+        action="{{ url_for('admin_news_edit', post_id=post.id) if post else url_for('admin_news_new') }}">
+    <div class="vdc-wizard__body" style="min-height: 0;">
+
+      <label class="vdc-wizard__panel-label" style="font: 600 13px var(--vdc-font-display); color: var(--vdc-navy-700); display: block; margin-bottom: var(--vdc-space-3);">Imagem de capa</label>
+      <div class="vdc-dropzone" data-dropzone>
+        <input type="file" name="image" id="post_image" accept="image/jpeg,image/png,image/webp" class="vdc-dropzone__input" data-dropzone-input>
+        <label for="post_image" class="vdc-dropzone__label" data-dropzone-label {% if post and post.image_path %}hidden{% endif %}>
+          <span class="vdc-dropzone__icon">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          </span>
+          <span class="vdc-dropzone__text">Clique ou arraste uma imagem</span>
+        </label>
+        <div class="vdc-dropzone__preview" data-dropzone-preview {% if not (post and post.image_path) %}hidden{% endif %}>
+          <img data-dropzone-preview-img src="{{ url_for('static', filename=post.image_path) if post and post.image_path else '' }}" alt="Pré-visualização da capa">
+          <button type="button" class="vdc-dropzone__remove" data-dropzone-remove aria-label="Remover imagem">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+          </button>
+        </div>
+        <input type="hidden" name="remove_image" value="0" data-dropzone-remove-flag>
+      </div>
+
+      <div class="vdc-field vdc-field--full">
+        <span class="vdc-field__icon">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+        </span>
+        <span class="vdc-field__body">
+          <label for="title">Título <span class="vdc-required" aria-hidden="true">*</span></label>
+          <input class="vdc-field__input" type="text" id="title" name="title" required placeholder="Ex.: O que analisar antes de comprar um imóvel na planta" value="{{ post.title if post else '' }}">
+        </span>
+      </div>
+
+      <div class="vdc-field vdc-field--full">
+        <span class="vdc-field__icon">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
+        </span>
+        <span class="vdc-field__body">
+          <label for="category">Categoria</label>
+          <select class="vdc-field__input" id="category" name="category">
+            {% for value, label in categories.items() %}
+            <option value="{{ value }}" {% if post and post.category == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </span>
+      </div>
+
+      <div class="vdc-field vdc-field--full vdc-field--textarea">
+        <span class="vdc-field__icon">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 6h14M5 11h14M5 16h8"/></svg>
+        </span>
+        <span class="vdc-field__body">
+          <label for="excerpt">Resumo (aparece nos cards da listagem)</label>
+          <textarea class="vdc-field__input" id="excerpt" name="excerpt" rows="2" placeholder="Uma ou duas frases resumindo a notícia.">{{ post.excerpt if post else '' }}</textarea>
+        </span>
+      </div>
+
+      <div class="vdc-field vdc-field--full vdc-field--textarea">
+        <span class="vdc-field__icon">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
+        </span>
+        <span class="vdc-field__body">
+          <label for="body">Conteúdo <span class="vdc-required" aria-hidden="true">*</span></label>
+          <textarea class="vdc-field__input vdc-field__input--tall" id="body" name="body" rows="14" required
+                    placeholder="Escreva o texto da notícia. Deixe uma linha em branco entre um parágrafo e outro.">{{ post.body if post else '' }}</textarea>
+        </span>
+      </div>
+
+      <label class="vdc-toggle" style="margin-top: var(--vdc-space-5);">
+        <input type="checkbox" name="published" {% if not post or post.published %}checked{% endif %}>
+        <span class="vdc-toggle__track"><span class="vdc-toggle__thumb"></span></span>
+        <span class="vdc-toggle__label">Publicar no site (desmarque para deixar como rascunho, visível só aqui no painel)</span>
+      </label>
+    </div>
+
+    <div class="vdc-wizard__nav" style="justify-content: flex-end; margin-top: var(--vdc-space-7);">
+      <a href="{{ url_for('admin_news') }}" class="vdc-btn vdc-btn--secondary">Cancelar</a>
+      <button type="submit" class="vdc-btn vdc-btn--primary">
+        {{ 'Salvar alterações' if post else 'Salvar notícia' }}
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </button>
+    </div>
+  </form>
+
+  <a href="{{ url_for('admin_news') }}" class="vdc-btn vdc-btn--secondary vdc-admin__back">← Voltar para as notícias</a>
+</div>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

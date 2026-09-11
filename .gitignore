@@ -1,0 +1,35 @@
+# Segredos — nunca commitar. A cópia de exemplo (app/.env.example) é a
+# única versão que deve ir pro repositório.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+instance/
+
+# Configuração local do Claude Code — permissões específicas desta
+# máquina, não faz sentido versionar.
+.claude/settings.local.json
+
+# Skills baixadas de terceiros (conteúdo de pacotes externos, não deste
+# projeto) — reproduzíveis a partir de skills-lock.json, igual a
+# node_modules/vendor. .claude/launch.json (config do dev server deste
+# projeto) continua versionado normalmente.
+.claude/skills/
+
+# Fotos brutas de WhatsApp usadas para popular o admin durante o
+# desenvolvimento — as versões já processadas (redimensionadas) vivem
+# em app/static/uploads/imoveis, essas aqui na raiz são só o material
+# de origem, não fazem parte do site.
+WhatsApp Image*.jpeg
+WhatsApp Image*.jpg
+
+# SO / editor
+.DS_Store
+Thumbs.db

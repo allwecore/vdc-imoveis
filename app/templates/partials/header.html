@@ -1,0 +1,116 @@
+<header class="vdc-header">
+  <div class="vdc-header__inner vdc-container">
+    <a href="{{ url_for('index') }}" class="vdc-header__brand">
+      <img src="{{ url_for('static', filename='img/logo-vdc.png') }}" alt="VDC Imóveis" class="vdc-header__logo">
+      <span class="vdc-header__brand-text">VDC<em>Imóveis</em></span>
+    </a>
+
+    {# Agrupa a navegação inline + o gatilho do mega menu numa única
+       célula do grid (ver .vdc-header__inner), pra que os dois fiquem
+       centralizados como um bloco só, igual peça — independente da
+       largura da marca à esquerda e das ações à direita. O <nav> deixa
+       de ser filho direto do grid, mas continua sendo o <nav> semântico
+       de sempre; o botão "Menu" continua um irmão dele (fora da tag
+       <nav>), não um filho — a regra que esconde .vdc-header__nav no
+       mobile não pode levar esse botão junto, já que ele é quem
+       substitui a navegação nas telas pequenas. #}
+    <div class="vdc-header__navgroup">
+      <nav class="vdc-header__nav" aria-label="Navegação principal">
+        {% for link in nav_links %}
+          {% if link.children %}
+          <div class="vdc-header__navitem" data-nav-dropdown>
+            <button type="button" class="vdc-header__navlink" aria-haspopup="true" aria-expanded="false" data-nav-trigger>
+              {{ link.label }}
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+            </button>
+            <div class="vdc-header__navdropdown" data-nav-panel>
+              {% for child in link.children %}
+              <a href="{{ child.href }}">{{ child.label }}</a>
+              {% endfor %}
+            </div>
+          </div>
+          {% else %}
+          <a href="{{ link.href }}" class="vdc-header__navlink">{{ link.label }}</a>
+          {% endif %}
+        {% endfor %}
+      </nav>
+
+      <button type="button" class="vdc-header__navlink vdc-header__navlink--menu" aria-label="Abrir menu" aria-expanded="false" data-menu-toggle>
+        Menu
+        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+    </div>
+
+    <div class="vdc-header__actions">
+      <button type="button" class="vdc-header__icon-btn" data-favorites-toggle aria-label="Meus favoritos" aria-expanded="false">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path class="vdc-heart-fill" fill="currentColor" fill-opacity="0" d="M12 21c-.3 0-.6-.1-.8-.3C8.7 18.9 3 14.2 3 9.3 3 6.4 5.3 4 8.2 4c1.6 0 3.1.8 4 2 0 0 0 0-.2.1V6c.9-1.2 2.4-2 4-2C18.7 4 21 6.4 21 9.3c0 4.9-5.7 9.6-8.2 11.4-.2.2-.5.3-.8.3z"/></svg>
+        <span class="vdc-header__badge" data-favorites-count hidden>0</span>
+      </button>
+
+      <a href="/#contato" class="vdc-btn vdc-btn--primary vdc-header__cta">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h4l2 5-3 2a12 12 0 0 0 6 6l2-3 5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 2 6a2 2 0 0 1 2-2z"/></svg>
+        Falar com um consultor
+      </a>
+    </div>
+  </div>
+
+  <div class="vdc-megamenu" data-menu-panel>
+    <div class="vdc-container vdc-megamenu__grid">
+      {% for column in mega_menu_columns %}
+      <div class="vdc-megamenu__col">
+        {# <p>, não <h*>: é um rótulo de coluna do menu, não um título
+           de conteúdo — o cabeçalho inteiro vem antes do <h1> da
+           página, então um heading real aqui furaria a hierarquia
+           h1→h6 (auditoria UI/UX Pro Max: "no level skip"). #}
+        <p class="vdc-eyebrow">{{ column.title }}</p>
+        <ul>
+          {% for link in column.links %}
+          <li>
+            {% if link.action == 'favorites' %}
+            <button type="button" class="vdc-megamenu__favlink" data-favorites-toggle>
+              {{ link.label }}
+              <span class="vdc-header__badge vdc-header__badge--inline" data-favorites-count hidden>0</span>
+            </button>
+            {% else %}
+            <a href="{{ link.href }}">{{ link.label }}</a>
+            {% endif %}
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endfor %}
+
+      <div class="vdc-megamenu__promo">
+        <svg class="vdc-megamenu__promo-arc" viewBox="0 0 300 300" aria-hidden="true">
+          <circle cx="150" cy="150" r="140" fill="none" stroke="var(--vdc-gold-500)" stroke-width="4"/>
+        </svg>
+        <span class="vdc-eyebrow" style="color:var(--vdc-gold-500);">VDC Imóveis</span>
+        <p class="vdc-h4" style="color:#fff; margin-top:10px;">Consultoria, engenharia e jurídico na mesma mesa.</p>
+        <span class="vdc-caption" style="color:var(--vdc-navy-300); margin-top:12px; display:block;">CRECI 35889 · Vitória da Conquista - BA</span>
+        <a href="{{ url_for('search') }}" class="vdc-btn vdc-btn--gold" style="margin-top:var(--vdc-space-5);">
+          Ver imóveis
+          <svg class="vdc-icon-arrow" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </a>
+      </div>
+    </div>
+  </div>
+  <div class="vdc-header__backdrop" data-menu-backdrop></div>
+
+  <div class="vdc-favorites" data-favorites-panel>
+    <div class="vdc-favorites__head">
+      {# <p>, mesmo motivo do rótulo do mega menu acima: título de
+         painel, não de conteúdo — não pode ser um heading real antes
+         do <h1> da página. #}
+      <p class="vdc-h4">Meus favoritos</p>
+      <button type="button" class="vdc-favorites__close" data-favorites-toggle aria-label="Fechar favoritos">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <div class="vdc-favorites__list" data-favorites-list>
+      <div class="vdc-favorites__empty" data-favorites-empty>
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21c-.3 0-.6-.1-.8-.3C8.7 18.9 3 14.2 3 9.3 3 6.4 5.3 4 8.2 4c1.6 0 3.1.8 4 2 0 0 0 0-.2.1V6c.9-1.2 2.4-2 4-2C18.7 4 21 6.4 21 9.3c0 4.9-5.7 9.6-8.2 11.4-.2.2-.5.3-.8.3z"/></svg>
+        <p class="vdc-small">Você ainda não favoritou nenhum imóvel. Toque no coração de um card para guardá-lo aqui.</p>
+      </div>
+    </div>
+  </div>
+</header>

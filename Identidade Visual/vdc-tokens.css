@@ -1,0 +1,180 @@
+/* =========================================================
+   VDC IMÓVEIS — Design Tokens
+   v1.0 · agosto/2026
+   Cole este arquivo em qualquer projeto e use as variáveis.
+   Fontes: https://fonts.googleapis.com/css2?family=Archivo:wght@600;700&family=Hanken+Grotesk:wght@400;600;700&family=IBM+Plex+Mono:wght@500&display=swap
+   ========================================================= */
+
+:root {
+  /* ---- Cor: navy (marca) ---- */
+  --vdc-navy-900: #152B43;
+  --vdc-navy-700: #283B62;   /* cor-mãe */
+  --vdc-navy-500: #5272B2;
+  --vdc-navy-300: #8FA3C8;
+  --vdc-navy-100: #E7ECF5;
+
+  /* ---- Cor: dourado e areia (máx. 10% da peça) ---- */
+  --vdc-gold-300: #F2D376;
+  --vdc-gold-500: #C9A44E;
+  --vdc-gold-700: #8F7534;
+  --vdc-sand-400: #CBB492;
+  --vdc-sand-100: #F5EFE6;
+
+  /* ---- Neutros ---- */
+  --vdc-white:     #FFFFFF;
+  --vdc-off-white: #F7F8FA;
+  --vdc-gray-400:  #C9CED8;
+  --vdc-gray-600:  #616E89;
+  --vdc-ink:       #1A1F2B;
+
+  /* ---- Funcionais ---- */
+  --vdc-success:  #1F7A4C;
+  --vdc-alert:    #B4472E;
+  --vdc-whatsapp: #25D366;
+
+  /* ---- Gradientes ---- */
+  --vdc-metal: linear-gradient(135deg,#8F7534 0%,#C9A44E 35%,#F2D376 55%,#C9A44E 78%,#8F7534 100%);
+  --vdc-veil:  linear-gradient(180deg,rgba(21,43,67,0) 0%,rgba(21,43,67,.85) 100%);
+
+  /* ---- Tipografia ---- */
+  --vdc-font-display: "Archivo","Arial Black",Arial,sans-serif;
+  --vdc-font-body:    "Hanken Grotesk","Segoe UI",Arial,sans-serif;
+  --vdc-font-data:    "IBM Plex Mono",Consolas,"Courier New",monospace;
+
+  --vdc-size-display: 61px;
+  --vdc-size-h1: 49px;
+  --vdc-size-h2: 39px;
+  --vdc-size-h3: 31px;
+  --vdc-size-h4: 25px;
+  --vdc-size-lead: 19px;
+  --vdc-size-body: 16px;
+  --vdc-size-small: 14px;
+  --vdc-size-eyebrow: 13px;
+  --vdc-size-caption: 12px;
+
+  /* ---- Espaçamento (base 4) ---- */
+  --vdc-space-1: 4px;   --vdc-space-2: 8px;   --vdc-space-3: 12px;
+  --vdc-space-4: 16px;  --vdc-space-5: 24px;  --vdc-space-6: 32px;
+  --vdc-space-7: 48px;  --vdc-space-8: 64px;  --vdc-space-9: 96px;
+  --vdc-space-10: 128px; --vdc-space-11: 160px;
+
+  /* ---- Layout ---- */
+  --vdc-max-width: 1200px;
+  --vdc-gutter: 24px;
+
+  /* ---- Forma ---- */
+  --vdc-radius-none: 0;
+  --vdc-radius-sm: 4px;
+  --vdc-radius-full: 9999px;
+
+  /* ---- Sombra ---- */
+  --vdc-shadow-sm: 0 1px 2px rgba(21,43,67,.08);
+  --vdc-shadow-md: 0 4px 16px rgba(21,43,67,.10);
+  --vdc-shadow-lg: 0 16px 48px rgba(21,43,67,.14);
+
+  /* ---- Movimento ---- */
+  --vdc-dur-fast: 160ms;
+  --vdc-dur-base: 400ms;
+  --vdc-ease: cubic-bezier(.2,.8,.2,1);
+}
+
+/* Tipografia mobile (escala reduzida) */
+@media (max-width: 768px) {
+  :root {
+    --vdc-size-display: 40px;
+    --vdc-size-h1: 33px;
+    --vdc-size-h2: 28px;
+    --vdc-size-h3: 23px;
+    --vdc-size-h4: 20px;
+    --vdc-size-lead: 17px;
+  }
+}
+
+/* =========================================================
+   Utilitários
+   ========================================================= */
+
+.vdc-eyebrow {
+  font: 600 var(--vdc-size-eyebrow)/1.2 var(--vdc-font-display);
+  letter-spacing: .14em; text-transform: uppercase; color: var(--vdc-gold-500);
+}
+.vdc-h1 { font: 700 var(--vdc-size-h1)/1.1 var(--vdc-font-display); letter-spacing:-.02em; color: var(--vdc-navy-700); }
+.vdc-h2 { font: 700 var(--vdc-size-h2)/1.15 var(--vdc-font-display); letter-spacing:-.01em; color: var(--vdc-navy-700); }
+.vdc-h3 { font: 600 var(--vdc-size-h3)/1.2 var(--vdc-font-display); color: var(--vdc-navy-700); }
+.vdc-body { font: 400 var(--vdc-size-body)/1.65 var(--vdc-font-body); color: var(--vdc-gray-600); max-width: 68ch; }
+.vdc-data { font: 500 var(--vdc-size-h4)/1.2 var(--vdc-font-data); letter-spacing:.02em; color: var(--vdc-navy-700); }
+.vdc-caption {
+  font: 500 var(--vdc-size-caption)/1.4 var(--vdc-font-data);
+  letter-spacing:.1em; text-transform: uppercase; color: var(--vdc-gray-600);
+}
+
+/* Fio dourado sob título de seção */
+.vdc-rule::after {
+  content:""; display:block; width:64px; height:2px;
+  background: var(--vdc-gold-500); margin-top: var(--vdc-space-4);
+}
+
+/* Botões */
+.vdc-btn {
+  display:inline-flex; align-items:center; justify-content:center;
+  height:48px; padding:0 var(--vdc-space-6); border:0; cursor:pointer;
+  border-radius: var(--vdc-radius-sm);
+  font:600 15px/1 var(--vdc-font-display); letter-spacing:.06em; text-transform:uppercase;
+  text-decoration:none; transition: transform var(--vdc-dur-fast) var(--vdc-ease),
+                                    background var(--vdc-dur-fast) var(--vdc-ease);
+}
+.vdc-btn:hover { transform: translateY(-1px); filter: brightness(.92); }
+.vdc-btn:focus-visible { outline:2px solid var(--vdc-gold-500); outline-offset:2px; }
+.vdc-btn--primary   { background: var(--vdc-navy-700); color:#fff; }
+.vdc-btn--secondary { background: transparent; color: var(--vdc-navy-700); box-shadow: inset 0 0 0 1.5px var(--vdc-navy-700); }
+.vdc-btn--gold      { background: var(--vdc-gold-500); color: var(--vdc-navy-900); } /* um por tela */
+.vdc-btn--whatsapp  { background: var(--vdc-whatsapp); color:#fff; }
+
+/* Card de imóvel */
+.vdc-card {
+  background:#fff; border:1px solid var(--vdc-gray-400);
+  border-radius: var(--vdc-radius-sm); box-shadow: var(--vdc-shadow-sm); overflow:hidden;
+  transition: box-shadow var(--vdc-dur-fast) var(--vdc-ease),
+              border-color var(--vdc-dur-fast) var(--vdc-ease),
+              transform var(--vdc-dur-fast) var(--vdc-ease);
+}
+.vdc-card:hover { box-shadow: var(--vdc-shadow-md); border-color: var(--vdc-gold-500); transform: translateY(-2px); }
+
+/* Chip de status */
+.vdc-chip {
+  display:inline-block; padding:6px 12px; background: var(--vdc-navy-700); color:#fff;
+  border-radius: var(--vdc-radius-sm);
+  font:600 12px/1 var(--vdc-font-display); letter-spacing:.1em; text-transform:uppercase;
+}
+
+/* Selo de credencial */
+.vdc-seal {
+  display:grid; place-items:center; width:96px; height:96px; text-align:center;
+  border-radius: var(--vdc-radius-full); background: var(--vdc-navy-900);
+  box-shadow: inset 0 0 0 1.5px var(--vdc-gold-500);
+  color:#fff; font:500 11px/1.3 var(--vdc-font-data); letter-spacing:.08em; text-transform:uppercase;
+  padding: var(--vdc-space-3);
+}
+
+/* Campo de formulário */
+.vdc-input {
+  width:100%; height:48px; padding:0 var(--vdc-space-4);
+  border:1px solid var(--vdc-gray-400); border-radius: var(--vdc-radius-sm);
+  font:400 16px var(--vdc-font-body); color: var(--vdc-ink); background:#fff;
+}
+.vdc-input:focus { outline:none; border-color: var(--vdc-navy-500); box-shadow:0 0 0 2px var(--vdc-gold-500); }
+
+/* Foto com máscara em arco (assinatura da marca) */
+.vdc-arc { border-radius: var(--vdc-radius-full); overflow:hidden; }
+.vdc-arc-corner { border-radius: 0 0 0 100%; overflow:hidden; }
+
+/* Seção */
+.vdc-section { padding: var(--vdc-space-9) var(--vdc-space-5); }
+.vdc-section--navy { background: var(--vdc-navy-700); color:#fff; }
+.vdc-section--navy .vdc-h2, .vdc-section--navy .vdc-h3 { color:#fff; }
+.vdc-section--navy .vdc-body { color: var(--vdc-navy-100); }
+.vdc-container { max-width: var(--vdc-max-width); margin-inline:auto; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}

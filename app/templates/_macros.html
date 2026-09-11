@@ -1,0 +1,130 @@
+{% macro property_cover_icon(property_type) %}
+  {% if property_type == 'casa' %}
+  <svg class="vdc-property__icon" viewBox="0 0 200 150" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <polyline points="45,96 45,56 100,22 155,56 155,96"/>
+    <rect x="91" y="66" width="20" height="30"/>
+    <rect x="57" y="66" width="18" height="16"/>
+    <rect x="125" y="66" width="18" height="16"/>
+    <line x1="30" y1="96" x2="170" y2="96"/>
+  </svg>
+  {% elif property_type == 'casa_condominio' %}
+  <svg class="vdc-property__icon" viewBox="0 0 200 150" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <polyline points="65,92 65,60 100,36 135,60 135,92"/>
+    <rect x="93" y="70" width="14" height="22"/>
+    <line x1="30" y1="100" x2="170" y2="100"/>
+    <line x1="40" y1="100" x2="40" y2="82"/>
+    <line x1="55" y1="100" x2="55" y2="82"/>
+    <line x1="145" y1="100" x2="145" y2="82"/>
+    <line x1="160" y1="100" x2="160" y2="82"/>
+    <line x1="30" y1="82" x2="60" y2="82"/>
+    <line x1="140" y1="82" x2="170" y2="82"/>
+  </svg>
+  {% elif property_type == 'apartamento' %}
+  <svg class="vdc-property__icon" viewBox="0 0 200 150" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <rect x="60" y="24" width="80" height="102"/>
+    <line x1="30" y1="126" x2="170" y2="126"/>
+    <rect x="72" y="38" width="16" height="16"/>
+    <rect x="112" y="38" width="16" height="16"/>
+    <rect x="72" y="64" width="16" height="16"/>
+    <rect x="112" y="64" width="16" height="16"/>
+    <rect x="72" y="90" width="16" height="16"/>
+    <rect x="112" y="90" width="16" height="16"/>
+  </svg>
+  {% elif property_type == 'comercial' %}
+  <svg class="vdc-property__icon" viewBox="0 0 200 150" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <rect x="42" y="46" width="116" height="70"/>
+    <line x1="30" y1="116" x2="170" y2="116"/>
+    <path d="M38 46 L50 32 L62 46 L74 32 L86 46 L98 32 L110 46 L122 32 L134 46 L146 32 L158 46"/>
+    <rect x="90" y="80" width="20" height="36"/>
+    <rect x="56" y="62" width="20" height="18"/>
+    <rect x="124" y="62" width="20" height="18"/>
+  </svg>
+  {% elif property_type == 'terreno' %}
+  <svg class="vdc-property__icon" viewBox="0 0 200 150" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <polygon points="42,110 50,44 148,36 160,102" stroke-dasharray="7 7"/>
+    <circle cx="42" cy="110" r="4" fill="currentColor" stroke="none"/>
+    <circle cx="50" cy="44" r="4" fill="currentColor" stroke="none"/>
+    <circle cx="148" cy="36" r="4" fill="currentColor" stroke="none"/>
+    <circle cx="160" cy="102" r="4" fill="currentColor" stroke="none"/>
+    <line x1="100" y1="70" x2="100" y2="46"/>
+    <path d="M100 46 l10 6 -10 6 -10-6z" fill="currentColor" stroke="none"/>
+  </svg>
+  {% elif property_type == 'sitio_chacara' %}
+  <svg class="vdc-property__icon" viewBox="0 0 200 150" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M30 108 Q70 92 100 106 Q130 92 170 108"/>
+    <circle cx="140" cy="58" r="22"/>
+    <line x1="140" y1="80" x2="140" y2="106"/>
+    <polyline points="48,106 48,80 70,64 92,80 92,106"/>
+    <line x1="60" y1="90" x2="60" y2="106"/>
+  </svg>
+  {% else %}
+  <svg class="vdc-property__icon" viewBox="0 0 200 150" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <polyline points="45,96 45,56 100,22 155,56 155,96"/>
+    <rect x="91" y="66" width="20" height="30"/>
+    <line x1="30" y1="96" x2="170" y2="96"/>
+  </svg>
+  {% endif %}
+{% endmacro %}
+
+{% macro property_card(p) %}
+<article class="vdc-card" id="imovel-{{ p.id }}">
+  <div class="vdc-property__cover vdc-property__cover--{{ p.cover_tone }}">
+    <a class="vdc-property__cover-link" href="{{ url_for('property_detail', property_id=p.id) }}"
+       aria-label="Ver detalhes de {{ p.title }}">
+      {% if p.image_path %}
+      <img class="vdc-property__photo" src="{{ url_for('static', filename=p.image_path) }}" alt="{{ p.title }}" loading="lazy">
+      {% else %}
+      {{ property_cover_icon(p.property_type) }}
+      {% endif %}
+    </a>
+    <span class="vdc-chip">{{ p.status_label }}</span>
+    <button type="button" class="vdc-property__fav" data-fav-toggle
+            data-fav-id="{{ p.id }}" data-fav-title="{{ p.title }}"
+            data-fav-meta="{{ p.neighborhood }} · {{ p.city }} · {{ p.price_formatted }}"
+            data-fav-url="{{ url_for('property_detail', property_id=p.id) }}"
+            aria-label="Favoritar imóvel" aria-pressed="false">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path class="vdc-heart-fill" fill="currentColor" fill-opacity="0" d="M12 21c-.3 0-.6-.1-.8-.3C8.7 18.9 3 14.2 3 9.3 3 6.4 5.3 4 8.2 4c1.6 0 3.1.8 4 2 0 0 0 0-.2.1V6c.9-1.2 2.4-2 4-2C18.7 4 21 6.4 21 9.3c0 4.9-5.7 9.6-8.2 11.4-.2.2-.5.3-.8.3z"/></svg>
+    </button>
+  </div>
+  <div class="vdc-property__body">
+    <div class="vdc-property__tags">
+      {% if p.featured %}<span class="vdc-property__tag vdc-property__tag--featured">Destaque</span>{% endif %}
+      <span class="vdc-property__tag vdc-property__tag--type">{{ p.type_label }}</span>
+    </div>
+    <h3 class="vdc-property__title">
+      <a class="vdc-property__title-link" href="{{ url_for('property_detail', property_id=p.id) }}">{{ p.title }}</a>
+    </h3>
+    <span class="vdc-property__location">
+      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      {{ p.neighborhood }} · {{ p.city }}
+    </span>
+    <div class="vdc-property__specs">
+      <span><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="6" rx="1"/><rect x="5" y="8" width="5" height="4" rx="1"/><path d="M3 17v3M21 17v3"/></svg>{{ p.bedrooms or '—' }}</span>
+      <span><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M10 16V8h3a2.5 2.5 0 0 1 0 5h-3"/></svg>{{ p.parking_spots or '—' }}</span>
+      <span><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M16 21h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>{{ p.area_m2|round|int }} m²</span>
+    </div>
+    {% if p.highlight %}<p class="vdc-small vdc-property__meta">{{ p.highlight }}</p>{% endif %}
+    <span class="vdc-property__price">{{ p.price_formatted }}</span>
+    <a href="{{ url_for('property_detail', property_id=p.id) }}" class="vdc-btn vdc-btn--secondary vdc-property__cta">
+      Ver imóvel
+      <svg class="vdc-icon-arrow" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    </a>
+  </div>
+</article>
+{% endmacro %}
+
+{% macro empty_state(title, text, cta_label=none, cta_href=none) %}
+<div class="vdc-empty">
+  <div class="vdc-empty__icon">
+    <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/><path d="M8 11h6"/></svg>
+  </div>
+  <h3 class="vdc-h4">{{ title }}</h3>
+  <p class="vdc-body">{{ text }}</p>
+  {% if cta_label and cta_href %}
+  <a href="{{ cta_href }}" class="vdc-btn vdc-btn--secondary">
+    {{ cta_label }}
+    <svg class="vdc-icon-arrow" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+  </a>
+  {% endif %}
+</div>
+{% endmacro %}

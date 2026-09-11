@@ -1,0 +1,402 @@
+{% from "_macros.html" import property_cover_icon %}
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<script>document.documentElement.classList.add('js');</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin · {{ 'Editar imóvel' if prop else 'Novo imóvel' }} | VDC Imóveis</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700&family=Hanken+Grotesk:wght@400;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+</head>
+<body class="vdc-admin">
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+  <div class="vdc-flash-stack" data-flash-stack>
+    {% for category, message in messages %}
+    <div class="vdc-flash vdc-flash--{{ category }}"
+         role="{{ 'alert' if category == 'error' else 'status' }}"
+         aria-live="{{ 'assertive' if category == 'error' else 'polite' }}"
+         data-flash>
+      <span>{{ message }}</span>
+      <button type="button" class="vdc-flash__close" data-flash-close aria-label="Fechar aviso">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+{% endwith %}
+
+<div class="vdc-admin__bar">
+  <div class="vdc-container vdc-admin__bar-inner">
+    <nav class="vdc-admin__nav" aria-label="Seções do admin">
+      <a href="{{ url_for('admin_properties') }}" class="is-current">Imóveis</a>
+      <a href="{{ url_for('admin_hero') }}">Hero</a>
+      <a href="{{ url_for('admin_news') }}">Notícias</a>
+      <a href="{{ url_for('admin_about') }}">Quem somos</a>
+      <a href="{{ url_for('admin_team') }}">Equipe</a>
+      <a href="{{ url_for('admin_settings') }}">Configurações</a>
+      <form action="{{ url_for('admin_logout') }}" method="post" class="vdc-admin__nav-logout">
+        <button type="submit">Sair</button>
+      </form>
+    </nav>
+    <span class="vdc-eyebrow vdc-admin__eyebrow">{{ 'Editando' if prop else 'Novo cadastro' }}</span>
+    <h1 class="vdc-h2 vdc-admin__title">{{ prop.title if prop else 'Cadastrar imóvel' }}</h1>
+    <p class="vdc-body vdc-admin__subtitle">{{ 'Altere os dados e salve; as mudanças refletem no site na hora.' if prop else 'Preencha em 4 passos rápidos. O imóvel entra na carteira do site assim que você salvar.' }}</p>
+  </div>
+</div>
+
+<div class="vdc-container vdc-admin__content">
+  <form class="vdc-wizard" action="{{ url_for('admin_properties_edit', property_id=prop.id) if prop else url_for('admin_properties_new') }}" method="post" enctype="multipart/form-data" data-wizard novalidate style="margin: 0;">
+    <div class="vdc-wizard__stepper">
+      <div class="vdc-wizard__track"><div class="vdc-wizard__track-fill" data-wizard-fill></div></div>
+      <ol class="vdc-wizard__steps">
+        <li class="vdc-wizard__step is-current" data-wizard-indicator="1">
+          <span class="vdc-wizard__step-icon">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11l8-7 8 7M6 10v9h12v-9"/></svg>
+          </span>
+          <span class="vdc-wizard__step-label">Tipo</span>
+        </li>
+        <li class="vdc-wizard__step" data-wizard-indicator="2">
+          <span class="vdc-wizard__step-icon">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          </span>
+          <span class="vdc-wizard__step-label">Local</span>
+        </li>
+        <li class="vdc-wizard__step" data-wizard-indicator="3">
+          <span class="vdc-wizard__step-icon">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+          </span>
+          <span class="vdc-wizard__step-label">Anúncio</span>
+        </li>
+        <li class="vdc-wizard__step" data-wizard-indicator="4">
+          <span class="vdc-wizard__step-icon">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l2.2 5.6 6 .5-4.6 3.9 1.5 5.8L12 14.9 6.9 17.8l1.5-5.8-4.6-3.9 6-.5z"/></svg>
+          </span>
+          <span class="vdc-wizard__step-label">Publicar</span>
+        </li>
+      </ol>
+    </div>
+
+    <div class="vdc-wizard__body">
+      <fieldset class="vdc-wizard__panel" data-wizard-panel="1">
+        <legend class="vdc-h4">Que tipo de imóvel é?</legend>
+        <div class="vdc-wizard__types">
+          {% for value, label in property_type_options.items() %}
+          <label class="vdc-wizard__type">
+            <input type="radio" name="property_type" value="{{ value }}" required
+                   {% if prop and prop.property_type == value %}checked{% elif not prop and loop.first %}checked{% endif %}>
+            <span class="vdc-wizard__type-card">
+              <span class="vdc-wizard__type-icon">{{ property_cover_icon(value) }}</span>
+              <span class="vdc-wizard__type-label">{{ label }}</span>
+              <svg class="vdc-wizard__type-check" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 13l4 4L19 7"/></svg>
+            </span>
+          </label>
+          {% endfor %}
+        </div>
+        <div class="vdc-wizard__status" role="radiogroup" aria-label="Venda ou aluguel">
+          <label class="vdc-wizard__status-opt">
+            <input type="radio" name="status" value="venda" required {% if not prop or prop.status == 'venda' %}checked{% endif %}>
+            <span>À venda</span>
+          </label>
+          <label class="vdc-wizard__status-opt">
+            <input type="radio" name="status" value="aluguel" required {% if prop and prop.status == 'aluguel' %}checked{% endif %}>
+            <span>Para alugar</span>
+          </label>
+        </div>
+      </fieldset>
+
+      <fieldset class="vdc-wizard__panel" data-wizard-panel="2" hidden>
+        <legend class="vdc-h4">Onde fica e como é o imóvel?</legend>
+
+        <div class="vdc-wizard__grid vdc-wizard__grid--3">
+          <div class="vdc-field">
+            <span class="vdc-field__icon">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/><path d="M7 15h4"/></svg>
+            </span>
+            <span class="vdc-field__body">
+              <label for="cep">CEP</label>
+              <input class="vdc-field__input" type="text" id="cep" name="cep" inputmode="numeric" maxlength="9" placeholder="Ex.: 45020-000" value="{{ prop.cep if prop and prop.cep else '' }}"
+                     data-cep-input
+                     data-cep-target-street="street_address"
+                     data-cep-target-neighborhood="neighborhood"
+                     data-cep-target-city="city"
+                     data-cep-target-state="state"
+                     data-cep-target-number="street_number">
+            </span>
+          </div>
+          <div class="vdc-field" style="grid-column: span 2;">
+            <span class="vdc-field__icon">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h16M4 6h16M4 18h10"/></svg>
+            </span>
+            <span class="vdc-field__body">
+              <label for="street_address">Rua / logradouro</label>
+              <input class="vdc-field__input" type="text" id="street_address" name="street_address" placeholder="Ex.: Rua das Acácias" value="{{ prop.street_address if prop and prop.street_address else '' }}">
+            </span>
+          </div>
+        </div>
+
+        <div class="vdc-wizard__grid vdc-wizard__grid--3">
+          <div class="vdc-field">
+            <span class="vdc-field__icon">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V9l8-5 8 5v11"/><path d="M9 20v-5h6v5"/></svg>
+            </span>
+            <span class="vdc-field__body">
+              <label for="street_number">Número</label>
+              <input class="vdc-field__input" type="text" id="street_number" name="street_number" inputmode="numeric" placeholder="Ex.: 120" value="{{ prop.street_number if prop and prop.street_number else '' }}">
+            </span>
+          </div>
+          <div class="vdc-field" style="grid-column: span 2;">
+            <span class="vdc-field__icon">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>
+            </span>
+            <span class="vdc-field__body">
+              <label for="complement">Complemento</label>
+              <input class="vdc-field__input" type="text" id="complement" name="complement" placeholder="Ex.: Apto 302, bloco B" value="{{ prop.complement if prop and prop.complement else '' }}">
+            </span>
+          </div>
+        </div>
+
+        <div class="vdc-field vdc-field--full">
+          <span class="vdc-field__icon">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          </span>
+          <span class="vdc-field__body">
+            <label for="neighborhood">Bairro <span class="vdc-required" aria-hidden="true">*</span></label>
+            <input class="vdc-field__input" type="text" id="neighborhood" name="neighborhood" list="neighborhood-list" required placeholder="Ex.: Candeias" value="{{ prop.neighborhood if prop else '' }}">
+            <datalist id="neighborhood-list">
+              {% for n in neighborhood_options %}<option value="{{ n }}">{% endfor %}
+            </datalist>
+          </span>
+        </div>
+
+        <div class="vdc-wizard__grid vdc-wizard__grid--3">
+          <div class="vdc-field" style="grid-column: span 2;">
+            <span class="vdc-field__icon">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M10 21v-4h4v4"/></svg>
+            </span>
+            <span class="vdc-field__body">
+              <label for="city">Cidade</label>
+              <input class="vdc-field__input" type="text" id="city" name="city" placeholder="Vitória da Conquista" value="{{ prop.city if prop else 'Vitória da Conquista' }}">
+            </span>
+          </div>
+          <div class="vdc-field">
+            <span class="vdc-field__icon">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3z"/><path d="M9 3v15M15 6v15"/></svg>
+            </span>
+            <span class="vdc-field__body">
+              <label for="state">Estado (UF)</label>
+              <input class="vdc-field__input" type="text" id="state" name="state" maxlength="2" placeholder="BA" style="text-transform: uppercase;" value="{{ prop.state if prop else 'BA' }}">
+            </span>
+          </div>
+        </div>
+
+        <p class="vdc-small vdc-wizard__hint">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          A localização no mapa é obtida automaticamente a partir deste endereço, usando o OpenStreetMap. Você não precisa informar latitude nem longitude.
+          {%- if prop and prop.has_map %} <strong>Situação atual:</strong> {{ prop.map_precision_label }}{% endif %}
+        </p>
+
+        <div class="vdc-wizard__grid vdc-wizard__grid--3">
+          <div class="vdc-field">
+            <span class="vdc-field__icon">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M16 21h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+            </span>
+            <span class="vdc-field__body">
+              <label for="area_m2">Área (m²) <span class="vdc-required" aria-hidden="true">*</span></label>
+              <input class="vdc-field__input" type="number" id="area_m2" name="area_m2" min="1" step="0.01" required placeholder="Ex.: 120" value="{{ prop.area_m2|int if prop else '' }}">
+            </span>
+          </div>
+          <div class="vdc-field">
+            <span class="vdc-field__icon">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="6" rx="1"/><rect x="5" y="8" width="5" height="4" rx="1"/><path d="M3 17v3M21 17v3"/></svg>
+            </span>
+            <span class="vdc-field__body">
+              <label for="bedrooms">Quartos</label>
+              <input class="vdc-field__input" type="number" id="bedrooms" name="bedrooms" min="0" placeholder="Ex.: 3" value="{{ prop.bedrooms if prop else '' }}">
+            </span>
+          </div>
+          <div class="vdc-field">
+            <span class="vdc-field__icon">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M10 16V8h3a2.5 2.5 0 0 1 0 5h-3"/></svg>
+            </span>
+            <span class="vdc-field__body">
+              <label for="parking_spots">Vagas</label>
+              <input class="vdc-field__input" type="number" id="parking_spots" name="parking_spots" min="0" placeholder="Ex.: 2" value="{{ prop.parking_spots if prop else '' }}">
+            </span>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset class="vdc-wizard__panel" data-wizard-panel="3" hidden>
+        <legend class="vdc-h4">Detalhes do anúncio</legend>
+
+        <div class="vdc-field vdc-field--full">
+          <span class="vdc-field__icon">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+          </span>
+          <span class="vdc-field__body">
+            <label for="title">Título do anúncio <span class="vdc-required" aria-hidden="true">*</span></label>
+            <input class="vdc-field__input" type="text" id="title" name="title" required placeholder="Ex.: Casa térrea com quintal amplo" value="{{ prop.title if prop else '' }}">
+          </span>
+        </div>
+
+        <div class="vdc-field vdc-field--full">
+          <span class="vdc-field__icon">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3h6a2 2 0 0 1 2 2v6l-9 9a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8l9-9z"/><circle cx="15.5" cy="7.5" r="1.1" fill="currentColor" stroke="none"/></svg>
+          </span>
+          <span class="vdc-field__body">
+            <label for="price">Valor (R$) <span class="vdc-required" aria-hidden="true">*</span></label>
+            <input class="vdc-field__input" type="number" id="price" name="price" min="1" step="0.01" required placeholder="Ex.: 350000" value="{{ prop.price|int if prop else '' }}">
+          </span>
+        </div>
+
+        <div class="vdc-field vdc-field--full vdc-field--textarea">
+          <span class="vdc-field__icon">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+          </span>
+          <span class="vdc-field__body">
+            <label for="description">Descrição (opcional)</label>
+            <textarea class="vdc-field__input" id="description" name="description" rows="5" placeholder="Ex.: Casa reformada em 2023, piso porcelanato, cozinha planejada e área de lazer com churrasqueira. Laudo técnico incluso.">{{ prop.description if prop and prop.description else '' }}</textarea>
+          </span>
+        </div>
+      </fieldset>
+
+      <fieldset class="vdc-wizard__panel" data-wizard-panel="4" hidden>
+        <legend class="vdc-h4">Como este imóvel aparece no site?</legend>
+
+        <label class="vdc-wizard__panel-label" style="font: 600 13px var(--vdc-font-display); color: var(--vdc-navy-700); display: block; margin-bottom: var(--vdc-space-3);">Fotos do imóvel</label>
+
+        {# Galeria de fotos — gerenciada inteirinha no navegador
+           (property-photos.js): adicionar, remover, reordenar e
+           escolher a principal são tudo mudanças no DOM, e só vão pro
+           servidor quando o formulário inteiro é salvo, nos 3 campos
+           ocultos no fim deste bloco. Sem chamada AJAX própria — seguindo
+           o mesmo padrão de "um POST salva tudo" que o resto do
+           cadastro já usa. #}
+        <div class="vdc-photos" data-photos-manager>
+          <div class="vdc-photos__dropzone" data-photos-dropzone>
+            <input type="file" name="photos" id="property_photos_input" accept="image/jpeg,image/png,image/webp" multiple class="vdc-photos__input" data-photos-input hidden>
+            <label for="property_photos_input" class="vdc-photos__dropzone-label">
+              <span class="vdc-photos__dropzone-icon">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+              </span>
+              <span>
+                <span class="vdc-photos__dropzone-text">Adicionar fotos</span>
+                <span class="vdc-small vdc-photos__dropzone-hint">Clique ou arraste — pode escolher várias de uma vez</span>
+              </span>
+            </label>
+          </div>
+
+          <div class="vdc-photos__grid" data-photos-grid>
+            {% for photo in (prop.photos if prop else []) %}
+            <div class="vdc-photos__item" draggable="true" data-photo-item data-photo-ref="existing:{{ photo.id }}">
+              <img class="vdc-photos__thumb" src="{{ url_for('static', filename=photo.thumb_url or photo.url) }}" alt="" draggable="false">
+              <span class="vdc-photos__primary-badge" data-photo-primary-badge {% if not photo.is_primary %}hidden{% endif %}>Principal</span>
+              <div class="vdc-photos__actions">
+                <button type="button" class="vdc-photos__action" data-photo-star aria-label="Tornar foto principal" aria-pressed="{{ 'true' if photo.is_primary else 'false' }}">
+                  <svg viewBox="0 0 24 24" width="15" height="15" fill="{{ 'currentColor' if photo.is_primary else 'none' }}" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l2.2 5.6 6 .5-4.6 3.9 1.5 5.8L12 14.9 6.9 17.8l1.5-5.8-4.6-3.9 6-.5z"/></svg>
+                </button>
+                <button type="button" class="vdc-photos__action vdc-photos__action--danger" data-photo-remove aria-label="Remover foto">
+                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>
+                </button>
+              </div>
+              <div class="vdc-photos__move">
+                <button type="button" class="vdc-photos__move-btn" data-photo-move-left aria-label="Mover foto para a esquerda">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
+                </button>
+                <button type="button" class="vdc-photos__move-btn" data-photo-move-right aria-label="Mover foto para a direita">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+                </button>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+
+          <p class="vdc-small vdc-photos__empty-hint" data-photos-empty-hint {% if prop and prop.photos %}hidden{% endif %}>
+            Nenhuma foto ainda. Adicione quantas quiser — a primeira vira a principal automaticamente, mas você pode trocar quando quiser.
+          </p>
+
+          <template data-photo-item-template>
+            <div class="vdc-photos__item" draggable="true" data-photo-item>
+              <img class="vdc-photos__thumb" src="" alt="" draggable="false">
+              <span class="vdc-photos__primary-badge" data-photo-primary-badge hidden>Principal</span>
+              <div class="vdc-photos__actions">
+                <button type="button" class="vdc-photos__action" data-photo-star aria-label="Tornar foto principal" aria-pressed="false">
+                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l2.2 5.6 6 .5-4.6 3.9 1.5 5.8L12 14.9 6.9 17.8l1.5-5.8-4.6-3.9 6-.5z"/></svg>
+                </button>
+                <button type="button" class="vdc-photos__action vdc-photos__action--danger" data-photo-remove aria-label="Remover foto">
+                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>
+                </button>
+              </div>
+              <div class="vdc-photos__move">
+                <button type="button" class="vdc-photos__move-btn" data-photo-move-left aria-label="Mover foto para a esquerda">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
+                </button>
+                <button type="button" class="vdc-photos__move-btn" data-photo-move-right aria-label="Mover foto para a direita">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+                </button>
+              </div>
+            </div>
+          </template>
+
+          <input type="hidden" name="deleted_photo_ids" value="[]" data-photos-deleted>
+          <input type="hidden" name="photos_order" value="[]" data-photos-order>
+          <input type="hidden" name="primary_photo_ref" value="" data-photos-primary>
+        </div>
+
+        <label class="vdc-wizard__panel-label" style="font: 600 13px var(--vdc-font-display); color: var(--vdc-navy-700); display: block; margin: var(--vdc-space-6) 0 var(--vdc-space-3);">Cor da capa (usada se não houver foto)</label>
+        <div class="vdc-wizard__tones">
+          <label class="vdc-wizard__tone">
+            <input type="radio" name="cover_tone" value="navy" {% if not prop or prop.cover_tone == 'navy' %}checked{% endif %}>
+            <span class="vdc-wizard__tone-card">
+              <span class="vdc-wizard__tone-swatch vdc-wizard__tone-swatch--navy"></span>
+              Navy
+              <svg class="vdc-wizard__tone-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 13l4 4L19 7"/></svg>
+            </span>
+          </label>
+          <label class="vdc-wizard__tone">
+            <input type="radio" name="cover_tone" value="gold" {% if prop and prop.cover_tone == 'gold' %}checked{% endif %}>
+            <span class="vdc-wizard__tone-card">
+              <span class="vdc-wizard__tone-swatch vdc-wizard__tone-swatch--gold"></span>
+              Dourado
+              <svg class="vdc-wizard__tone-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 13l4 4L19 7"/></svg>
+            </span>
+          </label>
+          <label class="vdc-wizard__tone">
+            <input type="radio" name="cover_tone" value="sand" {% if prop and prop.cover_tone == 'sand' %}checked{% endif %}>
+            <span class="vdc-wizard__tone-card">
+              <span class="vdc-wizard__tone-swatch vdc-wizard__tone-swatch--sand"></span>
+              Areia
+              <svg class="vdc-wizard__tone-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 13l4 4L19 7"/></svg>
+            </span>
+          </label>
+        </div>
+
+        <label class="vdc-toggle">
+          <input type="checkbox" name="featured" {% if not prop or prop.featured %}checked{% endif %}>
+          <span class="vdc-toggle__track"><span class="vdc-toggle__thumb"></span></span>
+          <span class="vdc-toggle__label">Destacar na home ("Imóveis em destaque")</span>
+        </label>
+      </fieldset>
+    </div>
+
+    <div class="vdc-wizard__nav">
+      <button type="button" class="vdc-btn vdc-btn--secondary" data-wizard-back hidden>Voltar</button>
+      <button type="button" class="vdc-btn vdc-btn--gold" data-wizard-next>
+        Próximo
+        <svg class="vdc-icon-arrow" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </button>
+      <button type="submit" class="vdc-btn vdc-btn--primary" data-wizard-submit hidden>{{ 'Salvar alterações' if prop else 'Cadastrar imóvel' }}</button>
+    </div>
+  </form>
+
+  <a href="{{ url_for('admin_properties') }}" class="vdc-btn vdc-btn--secondary vdc-admin__back">← Voltar para a lista</a>
+</div>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+<script src="{{ url_for('static', filename='js/property-photos.js') }}"></script>
+</body>
+</html>

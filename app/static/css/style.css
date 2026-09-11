@@ -1,0 +1,1943 @@
+/* =========================================================
+   VDC IMÓVEIS — estilos da home
+   Construído sobre tokens.css (variáveis e classes utilitárias
+   do sistema de marca — cores, tipografia, espaçamento, sombra).
+
+   Índice deste arquivo:
+   1.  Reset básico e tipografia de página
+   2.  Entrada de seção ao rolar (scroll reveal)
+   3.  Botões — acabamento extra sobre o .vdc-btn do tokens.css
+   4.  Avisos (toasts) — mensagens de sucesso/erro
+   5.  Cabeçalho — logo, menu, dropdown, mega menu, favoritos
+   6.  Hero — carrossel de fotos, busca básica e avançada
+   7.  Seções da home (especialidades, imóveis, selos, equipe, CTA, contato)
+   8.  Estado vazio (sem imóveis / sem favoritos)
+   9.  Rodapé
+   ========================================================= */
+
+/* ---------------------------------------------------------
+   1. Reset básico e tipografia de página
+   --------------------------------------------------------- */
+
+:root {
+  /* Escala de z-index documentada (auditoria UI/UX Pro Max: evitar
+     valores arbitrários tipo 9999 — cada camada de sobreposição tem
+     um número fixo, do mais baixo pro mais alto). */
+  --vdc-z-dropdown: 10;   /* dropdown "Imóveis" dentro do menu principal */
+  --vdc-z-header: 100;    /* cabeçalho fixo (sticky) e botão do WhatsApp */
+  --vdc-z-backdrop: 200;  /* fundo escurecido atrás do mega menu */
+  --vdc-z-menu: 300;      /* mega menu e painel de favoritos */
+  --vdc-z-toast: 900;     /* avisos (toasts) — sempre por cima de tudo */
+
+  /* Margem lateral de página (DESIGN.md §5 "Grid"): 24px no celular,
+     48px no tablet, 80px no desktop. Usada por .vdc-section,
+     .vdc-header__inner e o rodapé — qualquer wrapper que precise de
+     respiro nas bordas da tela, fora do .vdc-container (que só limita
+     largura máxima, sem padding próprio). */
+  --vdc-margin-mobile: var(--vdc-space-5);  /* 24px */
+  --vdc-margin-tablet: var(--vdc-space-7);  /* 48px */
+  --vdc-margin-desktop: 80px;               /* valor fixo do DESIGN.md — fora da escala de 4px */
+}
+
+/* box-sizing previsível em todo elemento: padding/borda não somam
+   ao width/height declarado. */
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+/* BUG real encontrado ao olhar o site renderizado: várias classes
+   deste arquivo (ex.: .vdc-hero__advanced { display: grid }) têm a
+   mesma especificidade do que o navegador usa por padrão pro
+   atributo [hidden] — e como vêm depois no cascata, ganham e
+   mostram o elemento mesmo com hidden ligado. A busca avançada do
+   hero aparecia junto da busca básica por causa disso. !important
+   aqui é proposital: [hidden] deve sempre vencer, sem exceção. */
+[hidden] { display: none !important; }
+
+body {
+  margin: 0;
+  background: var(--vdc-white);
+  color: var(--vdc-ink);
+  font-family: var(--vdc-font-body);
+  -webkit-font-smoothing: antialiased;
+}
+img { max-width: 100%; display: block; }
+a { color: inherit; }
+ul { list-style: none; margin: 0; padding: 0; }
+h1, h2, h3, h4, p { margin: 0; }
+
+/* Padrão "screen-reader only": presente pra leitor de tela e pra
+   hierarquia de headings, mas fora do fluxo visual — não empurra
+   nada de layout. Usado em search.html (ver comentário lá). */
+.vdc-sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
+
+/* ---------------------------------------------------------
+   2. Entrada de seção ao rolar (scroll reveal)
+   Especificado no DESIGN.md §10: fade + 16px de subida, 400ms,
+   uma vez por seção. Animado via GSAP/ScrollTrigger em main.js —
+   aqui só o estado inicial escondido (a lib anima direto pra opacity:1
+   /transform:none via inline style, por isso não tem transition nem
+   .is-visible aqui: main.js também tem um fallback que aplica
+   opacity/transform final na marra se o GSAP não carregar).
+
+   Escopado a "html.js" — essa classe só existe se o JavaScript
+   rodou (adicionada por um script inline no <head> de base.html).
+   Sem JS, a regra abaixo nunca se aplica e o conteúdo já nasce
+   visível, em vez de ficar escondido para sempre.
+   --------------------------------------------------------- */
+.js .vdc-reveal, .js .vdc-card {
+  opacity: 0; transform: translateY(16px);
+}
+/* Keyboard focus can land inside one of these before its scroll-trigger
+   ever fires (e.g. Tab without manual scrolling lets the browser's native
+   "scroll focused element into view" do the work) — the outline would
+   then appear on invisible or mid-fade content. Force full visibility
+   the moment focus enters, regardless of GSAP's inline-style state;
+   !important is required to beat that inline style. */
+.js .vdc-reveal:focus-within, .js .vdc-card:focus-within {
+  opacity: 1 !important; transform: none !important;
+}
+
+/* ---------------------------------------------------------
+   3. Botões — acabamento extra sobre o .vdc-btn do tokens.css
+   (que já define cor, altura, raio e tipografia por variante:
+   --primary/--secondary/--gold/--whatsapp). Aqui só entram sombra,
+   estado de clique e o ícone opcional dentro do botão.
+   --------------------------------------------------------- */
+.vdc-btn {
+  gap: 8px; box-shadow: var(--vdc-shadow-sm);
+  transition: transform var(--vdc-dur-fast) var(--vdc-ease),
+              box-shadow var(--vdc-dur-fast) var(--vdc-ease),
+              background var(--vdc-dur-fast) var(--vdc-ease),
+              filter var(--vdc-dur-fast) var(--vdc-ease);
+}
+.vdc-btn:hover { box-shadow: var(--vdc-shadow-md); }
+.vdc-btn:active { transform: translateY(0) scale(.98); box-shadow: var(--vdc-shadow-sm); filter: brightness(.96); }
+.vdc-btn svg { flex-shrink: 0; }
+/* Seta padrão dos botões (→) desliza um pouco no hover — mesmo ícone
+   se repete em ~8 lugares (CTA, cards, contato), então um gesto só
+   aqui já moderniza o botão inteiro sem precisar trocar o traço. */
+.vdc-icon-arrow { transition: transform var(--vdc-dur-fast) var(--vdc-ease); }
+.vdc-btn:hover .vdc-icon-arrow { transform: translateX(3px); }
+
+/* Link de texto com seta — ação secundária dentro de um parágrafo,
+   sem o peso de um .vdc-btn (usado quando o botão principal já está
+   logo abaixo e um segundo botão competiria por atenção). */
+.vdc-link-arrow {
+  display: inline-flex; align-items: center; gap: 4px; margin-left: 6px;
+  color: var(--vdc-navy-700); font-weight: 600; text-decoration: none;
+  border-bottom: 1.5px solid var(--vdc-gold-500); padding-bottom: 1px;
+  transition: color var(--vdc-dur-fast) var(--vdc-ease);
+}
+.vdc-link-arrow:hover { color: var(--vdc-gold-700); }
+.vdc-link-arrow:hover .vdc-icon-arrow { transform: translateX(3px); }
+.vdc-btn--secondary:hover { background: var(--vdc-navy-100); }
+/* Botão desabilitado/"enviando..." (form de contato e upload do admin
+   usam isso via JS, ver data-submit-feedback em main.js). */
+.vdc-btn:disabled, .vdc-btn[aria-busy="true"] { opacity: .6; cursor: default; pointer-events: none; }
+
+/* ---------------------------------------------------------
+   4. Avisos (toasts) — mensagens de sucesso/erro do Flask (flash())
+   Somem sozinhos depois de 5s (ver dismissFlash em main.js) ou ao
+   clicar no X. role="alert"/"status" e aria-live vêm do template
+   (base.html) para leitor de tela anunciar corretamente.
+   --------------------------------------------------------- */
+.vdc-flash-stack {
+  position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
+  z-index: var(--vdc-z-toast); display: flex; flex-direction: column; gap: 8px; width: min(92vw, 420px);
+}
+.vdc-flash {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 12px 14px; border-radius: var(--vdc-radius-sm); font: 600 14px/1.4 var(--vdc-font-body);
+  box-shadow: var(--vdc-shadow-md); color: #fff;
+  opacity: 1; transition: opacity var(--vdc-dur-base) var(--vdc-ease), transform var(--vdc-dur-base) var(--vdc-ease);
+}
+.vdc-flash.is-leaving { opacity: 0; transform: translateY(-8px); }
+.vdc-flash span { flex: 1; }
+.vdc-flash--success { background: var(--vdc-success); }
+.vdc-flash--error { background: var(--vdc-alert); }
+.vdc-flash__close {
+  flex-shrink: 0; border: 0; background: transparent; color: #fff; opacity: .85; cursor: pointer;
+  width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; margin: -12px -12px -12px 0;
+  transition: opacity var(--vdc-dur-fast) var(--vdc-ease), background var(--vdc-dur-fast) var(--vdc-ease);
+}
+.vdc-flash__close:hover { opacity: 1; background: rgba(255,255,255,.15); }
+.vdc-flash__close:focus-visible { outline: 2px solid #fff; outline-offset: 2px; opacity: 1; }
+
+/* ---------------------------------------------------------
+   5. Cabeçalho
+   --------------------------------------------------------- */
+
+/* Faixa branca fixa no topo (logo + navegação + ações). */
+.vdc-header {
+  position: sticky; top: 0; z-index: var(--vdc-z-header); background: var(--vdc-white);
+  border-bottom: 1px solid var(--vdc-gray-400);
+  transition: box-shadow var(--vdc-dur-base) var(--vdc-ease);
+}
+/* Compacta ao passar de ~1 rolagem de tela (main.js liga .is-condensed
+   uma vez, ao cruzar o limiar — não recalcula a cada pixel). Sinaliza
+   "você saiu do hero" sem exigir nada do visitante. */
+.vdc-header.is-condensed { box-shadow: var(--vdc-shadow-sm); }
+/* 3 áreas reais — marca | navegação | ações —, não um flex com
+   space-between fingindo isso. Com space-between a navegação só ficava
+   "no meio do que sobrava" entre marca e ações, que é uma posição
+   diferente do centro geométrico do cabeçalho sempre que essas duas
+   pontas não têm a mesma largura (o caso normal: a marca é mais
+   estreita que o bloco de ações com o CTA, principalmente com o texto
+   comprido "Falar com um consultor").
+   No desktop (ver media query mais abaixo) quem centraliza a
+   navegação é position:absolute + translateX(-50%) no .navgroup, não
+   as colunas do grid — um grid 1fr/auto/1fr chegou a resolver a
+   centralização, mas o cálculo de 1fr trava (deixa de dividir o
+   espaço em partes iguais) sempre que um dos lados quase preenche
+   sozinho sua fatia, que é exatamente o caso do bloco de ações; nessas
+   condições, dar mais respiro pra esse lado (aumentar o gap) empurrava
+   a navegação pra fora do centro em vez de mantê-la lá. Centralização
+   por position:absolute não depende em nada da largura da marca ou
+   das ações — os dois lados ficam livres pra ter o espaçamento que
+   precisarem sem nenhum efeito colateral um no outro. */
+.vdc-header__inner {
+  /* position:relative: ancora o position:absolute do .navgroup no
+     desktop (ver media query). auto 1fr auto por padrão (mobile/
+     tablet, onde o navgroup continua sendo item normal do grid, não
+     absoluto): marca e ações ficam do tamanho do próprio conteúdo, a
+     coluna central é que é elástica — sem isso, forçar as duas pontas
+     em frações iguais faria a marca (mais larga que só o coração de
+     favoritos) atropelar o "Menu" em telas estreitas. */
+  display: grid; grid-template-columns: auto 1fr auto; align-items: center; column-gap: var(--vdc-space-5);
+  position: relative;
+  height: 80px;
+  transition: height var(--vdc-dur-base) var(--vdc-ease);
+  /* .vdc-container (max-width + auto-margin) não tem padding próprio —
+     sem isso aqui, logo e ações ficariam grudados na borda da tela
+     em qualquer viewport abaixo de 1200px. Ver --vdc-margin-* no :root. */
+  padding-inline: var(--vdc-margin-mobile);
+}
+@media (min-width: 768px) { .vdc-header__inner { padding-inline: var(--vdc-margin-tablet); } }
+@media (min-width: 1024px) { .vdc-header__inner { padding-inline: var(--vdc-margin-desktop); } }
+.vdc-header.is-condensed .vdc-header__inner { height: 60px; }
+/* justify-self:start (não o stretch padrão do grid) pra depender só do
+   próprio conteúdo, e um leve empurrão pra direita — a marca flush
+   contra a borda esquerda do container lia como "grudada", ela ganha
+   um respiro sem chegar perto de disputar espaço com a navegação. */
+.vdc-header__brand {
+  display: flex; align-items: center; gap: 10px; text-decoration: none;
+  /* grid-column explícito: no desktop (media query lá embaixo) o
+     navgroup vira position:absolute e sai do grid — sem posição fixa
+     aqui, marca e ações (os 2 itens que sobram no fluxo) seriam
+     renumeradas pras colunas 1 e 2 em vez de 1 e 3, e a coluna 3
+     ficaria vazia com as ações presas contra o meio em vez da borda
+     direita de verdade. */
+  grid-column: 1;
+  justify-self: start; margin-left: var(--vdc-space-4);
+  /* min-width:0 troca o mínimo automático (que, num filho de flex,
+     é o tamanho do conteúdo sem quebrar — o "VDC Imóveis" inteiro numa
+     linha só) por zero. Sem isso, abaixo de ~360px o texto não tinha
+     mais pra onde encolher e vazava por cima do "Menu" em vez de
+     quebrar linha — é só nessa faixa estreita que isto muda alguma
+     coisa; em qualquer largura com espaço de sobra o efeito é nulo. */
+  min-width: 0;
+}
+.vdc-header__logo { height: 40px; width: auto; flex-shrink: 0; transition: height var(--vdc-dur-base) var(--vdc-ease); }
+.vdc-header.is-condensed .vdc-header__logo { height: 30px; }
+.vdc-header__brand-text {
+  font: 700 18px/1 var(--vdc-font-display); color: var(--vdc-navy-700); letter-spacing: -0.01em;
+  min-width: 0;
+}
+.vdc-header__brand-text em { font-style: normal; font-weight: 600; color: var(--vdc-gray-600); margin-left: 4px; }
+
+/* Agrupa o <nav> inline e o gatilho do mega menu ("Menu") como um
+   bloco só, pra centralizar os dois juntos (ver comentário no
+   header.html sobre por que "Menu" não é filho do <nav>).
+   justify-self:center centraliza o grupo dentro da coluna central
+   elástica — é o que vale no mobile/tablet (grid auto 1fr auto, ver
+   .vdc-header__inner). No desktop a media query abaixo troca pra
+   position:absolute, que ignora completamente essa coluna. */
+.vdc-header__navgroup { display: flex; align-items: center; gap: var(--vdc-space-5); justify-self: center; }
+
+/* Menu principal (desktop): links simples + "Imóveis" com dropdown. */
+.vdc-header__nav { display: flex; align-items: center; gap: var(--vdc-space-5); }
+.vdc-header__navlink {
+  font: 600 14px/1 var(--vdc-font-display); text-decoration: none; color: var(--vdc-navy-700);
+  padding: 8px 0; border: 0; background: transparent; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 5px;
+  border-bottom: 2px solid transparent; transition: color var(--vdc-dur-fast) var(--vdc-ease), border-color var(--vdc-dur-fast) var(--vdc-ease);
+}
+.vdc-header__navlink:hover { color: var(--vdc-navy-500); border-bottom-color: var(--vdc-gold-500); }
+/* Acende sozinho enquanto a seção correspondente está na tela
+   (IntersectionObserver em main.js) — mesmo tratamento visual do
+   hover, agora comunicando "você está aqui" em vez de "passe o mouse". */
+.vdc-header__navlink.is-current { color: var(--vdc-navy-500); border-bottom-color: var(--vdc-gold-500); }
+.vdc-header__navlink:focus-visible { outline: 2px solid var(--vdc-gold-500); outline-offset: 2px; border-radius: 2px; }
+
+/* Dropdown "Imóveis" (Comprar/Alugar/Ver todos) — abre/fecha via
+   classe .is-open no .vdc-header__navitem, controlada em main.js. */
+.vdc-header__navitem { position: relative; }
+.vdc-header__navitem svg { transition: transform var(--vdc-dur-fast) var(--vdc-ease); }
+.vdc-header__navitem.is-open svg { transform: rotate(180deg); } /* seta vira pra cima quando aberto */
+.vdc-header__navdropdown {
+  position: absolute; top: calc(100% + 12px); left: 50%; transform: translateX(-50%);
+  min-width: 200px; background: #fff; border-radius: var(--vdc-radius-sm); box-shadow: var(--vdc-shadow-lg);
+  border: 1px solid var(--vdc-gray-400); padding: var(--vdc-space-2);
+  opacity: 0; visibility: hidden; transform: translateX(-50%) translateY(-6px);
+  transition: opacity var(--vdc-dur-fast) var(--vdc-ease), transform var(--vdc-dur-fast) var(--vdc-ease), visibility var(--vdc-dur-fast);
+  z-index: var(--vdc-z-dropdown);
+}
+.vdc-header__navitem.is-open .vdc-header__navdropdown { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+.vdc-header__navdropdown a {
+  display: block; padding: 10px 14px; border-radius: var(--vdc-radius-sm); text-decoration: none;
+  font: 500 14px var(--vdc-font-body); color: var(--vdc-ink); cursor: pointer;
+}
+.vdc-header__navdropdown a:hover { background: var(--vdc-navy-100); color: var(--vdc-navy-700); }
+.vdc-header__navdropdown a:focus-visible { outline: 2px solid var(--vdc-gold-500); outline-offset: -2px; background: var(--vdc-navy-100); }
+
+/* Ações à direita: favoritos + CTA principal. justify-self:end: sem
+   isso o grid estica esta coluna pro tamanho todo da faixa 1fr e o
+   conteúdo (que não tem justify-content próprio) nasce grudado na
+   borda ESQUERDA dessa faixa — ou seja, longe da borda direita real
+   do cabeçalho, exatamente o oposto do que devia. */
+.vdc-header__actions { display: flex; align-items: center; gap: var(--vdc-space-3); grid-column: 3; justify-self: end; }
+/* flex-shrink:0 + nowrap: como item de flex, o botão encolhia abaixo da
+   largura do próprio texto e "Falar com um consultor" quebrava em duas
+   linhas dentro de uma altura fixa de 44px, desalinhando o cabeçalho
+   inteiro. Aqui ele mantém a largura do conteúdo; quem cede espaço é a
+   navegação, que já some por completo abaixo de 1024px. */
+.vdc-header__cta { height: 44px; padding: 0 var(--vdc-space-4); font-size: 13px; white-space: nowrap; flex-shrink: 0; }
+
+/* Botão de ícone genérico (usado hoje só pelo coração de favoritos).
+   44×44px é o mínimo de área de toque recomendado (auditoria UI/UX Pro Max). */
+.vdc-header__icon-btn {
+  position: relative; display: inline-flex; align-items: center; justify-content: center;
+  width: 44px; height: 44px; border: 1px solid var(--vdc-gray-400); border-radius: 50%;
+  background: transparent; color: var(--vdc-navy-700); cursor: pointer;
+  transition: border-color var(--vdc-dur-fast) var(--vdc-ease), color var(--vdc-dur-fast) var(--vdc-ease);
+}
+.vdc-header__icon-btn:hover { border-color: var(--vdc-gold-500); color: var(--vdc-gold-700); }
+.vdc-header__icon-btn:focus-visible { outline: 2px solid var(--vdc-gold-500); outline-offset: 2px; }
+/* .has-items é ligado via JS quando há pelo menos 1 favorito salvo.
+   O preenchimento (fill-opacity) é controlado à parte, mais abaixo,
+   junto com a transição de fade do coração. */
+.vdc-header__icon-btn.has-items svg { stroke: var(--vdc-gold-500); }
+.vdc-header__icon-btn.has-items .vdc-heart-fill { fill: var(--vdc-gold-500); }
+
+/* Contador (bolinha com número) sobre o ícone de favoritos. */
+.vdc-header__badge {
+  position: absolute; top: -6px; right: -6px; min-width: 18px; height: 18px; padding: 0 4px;
+  border-radius: 999px; background: var(--vdc-gold-500); color: var(--vdc-navy-900);
+  font: 600 11px/18px var(--vdc-font-data); text-align: center;
+}
+/* Variante usada dentro do mega menu, ao lado do texto "Meus favoritos"
+   (não flutua sobre um ícone, então não precisa de position:absolute). */
+.vdc-header__badge--inline { position: static; margin-left: 8px; display: inline-block; }
+
+/* Botão "Menu" — abre o mega menu (ver seção 5.1 abaixo). Mesmo
+   visual de link do resto do .vdc-header__nav (texto + seta), não
+   mais um botão em pílula à parte — mas fica FORA do <nav> de
+   propósito: a regra que esconde .vdc-header__nav no mobile não pode
+   levar esse botão junto, já que ele é o gatilho do mega menu que
+   substitui a navegação nas telas pequenas. */
+.vdc-header__navlink--menu svg { transition: transform var(--vdc-dur-fast) var(--vdc-ease); }
+.vdc-header__navlink--menu.is-open svg { transform: rotate(180deg); }
+
+/* --- 5.1 Mega menu ---
+   Painel de largura total que desce abaixo do cabeçalho ao clicar
+   em "Menu". Some usando max-height (não display:none) pra poder
+   animar a abertura/fechamento suavemente. */
+.vdc-megamenu {
+  position: absolute; top: 100%; left: 0; right: 0; background: var(--vdc-navy-900);
+  max-height: 0; overflow: hidden; opacity: 0;
+  transition: max-height var(--vdc-dur-base) var(--vdc-ease), opacity var(--vdc-dur-base) var(--vdc-ease);
+  z-index: var(--vdc-z-menu);
+}
+.vdc-megamenu.is-open { max-height: 640px; opacity: 1; overflow-y: auto; }
+.vdc-megamenu__grid {
+  /* 3 colunas de links (Imóveis / A VDC / Atendimento) + 1 coluna maior
+     para o card de destaque — ver content.py: MEGA_MENU_COLUMNS. */
+  display: grid; grid-template-columns: repeat(3, 1fr) 1.2fr; gap: var(--vdc-space-7);
+  padding: var(--vdc-space-8) var(--vdc-space-5);
+}
+.vdc-megamenu__col ul { margin-top: var(--vdc-space-4); display: grid; gap: var(--vdc-space-3); }
+.vdc-megamenu__col a, .vdc-megamenu__favlink {
+  color: var(--vdc-navy-100); text-decoration: none; font: 400 15px var(--vdc-font-body); letter-spacing: .01em;
+  transition: color var(--vdc-dur-fast) var(--vdc-ease);
+  background: none; border: 0; padding: 4px 0; cursor: pointer; display: inline-flex; align-items: center;
+}
+.vdc-megamenu__col a:hover, .vdc-megamenu__favlink:hover { color: var(--vdc-gold-500); }
+.vdc-megamenu__col a:focus-visible, .vdc-megamenu__favlink:focus-visible {
+  outline: 2px solid var(--vdc-gold-500); outline-offset: 4px; color: var(--vdc-gold-500);
+}
+.vdc-megamenu__promo {
+  position: relative; background: var(--vdc-navy-700); border-radius: var(--vdc-radius-sm);
+  padding: var(--vdc-space-6); overflow: hidden;
+}
+/* Arco decorativo (assinatura da marca) no card de destaque, bem sutil. */
+.vdc-megamenu__promo-arc { position: absolute; bottom: -30%; right: -15%; width: 220px; opacity: .18; }
+
+/* Fundo escurecido atrás do mega menu, clicável para fechar. */
+.vdc-header__backdrop {
+  position: fixed; inset: 0; background: rgba(21,43,67,.35); z-index: var(--vdc-z-backdrop);
+  opacity: 0; visibility: hidden; transition: opacity var(--vdc-dur-fast) var(--vdc-ease), visibility var(--vdc-dur-fast);
+}
+.vdc-header__backdrop.is-open { opacity: 1; visibility: visible; }
+
+/* --- 5.2 Favoritos ---
+   Painel flutuante ancorado sob o ícone de coração. Lista vem do
+   localStorage do navegador (ver syncFavoritesUI em main.js) —
+   não depende do banco de dados. */
+.vdc-favorites {
+  position: absolute; top: calc(100% + 12px); right: var(--vdc-space-5); width: min(360px, calc(100vw - 32px));
+  background: #fff; border-radius: var(--vdc-radius-sm); box-shadow: var(--vdc-shadow-lg); border: 1px solid var(--vdc-gray-400);
+  opacity: 0; visibility: hidden; transform: translateY(-8px);
+  transition: opacity var(--vdc-dur-fast) var(--vdc-ease), transform var(--vdc-dur-fast) var(--vdc-ease), visibility var(--vdc-dur-fast);
+  z-index: var(--vdc-z-menu); max-height: 70vh; display: flex; flex-direction: column;
+}
+.vdc-favorites.is-open { opacity: 1; visibility: visible; transform: translateY(0); }
+.vdc-favorites__head {
+  display: flex; align-items: center; justify-content: space-between; padding: var(--vdc-space-4) var(--vdc-space-5);
+  border-bottom: 1px solid var(--vdc-gray-400);
+}
+.vdc-favorites__close {
+  border: 0; background: transparent; color: var(--vdc-navy-700); cursor: pointer;
+  width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%;
+  transition: background var(--vdc-dur-fast) var(--vdc-ease);
+}
+.vdc-favorites__close:hover { background: var(--vdc-navy-100); }
+.vdc-favorites__close:focus-visible { outline: 2px solid var(--vdc-gold-500); outline-offset: 2px; }
+.vdc-favorites__list { padding: var(--vdc-space-4) var(--vdc-space-5); overflow-y: auto; display: grid; gap: var(--vdc-space-3); }
+/* Mensagem mostrada quando a lista de favoritos está vazia (JS alterna
+   o atributo "hidden" deste bloco conforme o localStorage muda). */
+.vdc-favorites__empty { text-align: center; padding: var(--vdc-space-5) var(--vdc-space-3); color: var(--vdc-gray-600); }
+.vdc-favorites__empty svg { color: var(--vdc-navy-300); margin-bottom: var(--vdc-space-3); }
+.vdc-favorites__item { display: flex; gap: var(--vdc-space-3); align-items: center; padding-bottom: var(--vdc-space-3); border-bottom: 1px solid var(--vdc-gray-400); }
+.vdc-favorites__item:last-child { border-bottom: 0; padding-bottom: 0; }
+.vdc-favorites__item-body { flex: 1; }
+.vdc-favorites__item-body a { text-decoration: none; color: var(--vdc-navy-700); font: 600 14px var(--vdc-font-display); }
+.vdc-favorites__item-body a:focus-visible { outline: 2px solid var(--vdc-gold-500); outline-offset: 2px; }
+.vdc-favorites__item-meta { display: block; margin-top: 4px; }
+.vdc-favorites__item-remove {
+  border: 0; background: transparent; color: var(--vdc-gray-600); cursor: pointer;
+  width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; flex-shrink: 0;
+  transition: background var(--vdc-dur-fast) var(--vdc-ease), color var(--vdc-dur-fast) var(--vdc-ease);
+}
+.vdc-favorites__item-remove:hover { color: var(--vdc-alert); background: var(--vdc-off-white); }
+.vdc-favorites__item-remove:focus-visible { outline: 2px solid var(--vdc-gold-500); outline-offset: 2px; }
+
+/* Esconde o menu inline e o CTA do cabeçalho abaixo de 1200px (o botão
+   "Menu" cobre a navegação, e o mega menu tem o mesmo "Falar com um
+   consultor"). Era 1024px, mas com a aba "Notícias" a linha passou a
+   estourar a largura entre ~1025 e 1200. */
+@media (max-width: 1200px) {
+  .vdc-header__nav, .vdc-header__cta { display: none; }
+}
+/* Espelho do breakpoint acima: só a partir de onde a navegação
+   completa (4 links + "Menu") está de fato visível é que faz sentido
+   centralizar de verdade — e é seguro porque nessa largura sobra
+   espaço para os dois lados.
+
+   .navgroup sai do fluxo do grid (position:absolute, centralizado por
+   left:50%+translateX) em vez de depender das colunas 1fr/auto/1fr:
+   um grid 1fr/auto/1fr chegou a centralizar certinho, mas travou
+   assim que o bloco de ações (com o texto comprido "Falar com um
+   consultor", que já ocupa quase a fatia inteira do lado dele) ganhou
+   mais respiro — dar mais gap reduzia a fatia livre abaixo do que as
+   ações precisavam, e o grid compensava alargando o lado da marca,
+   descentralizando o menu. Com o navgroup fora do grid, marca e ações
+   voltam a ser só dois itens normais nas pontas (grid auto 1fr auto,
+   igual ao mobile/tablet) — o espaço entre eles não afeta mais a
+   posição do menu, então dá pra abrir bem mais respiro dos dois lados
+   sem nenhum efeito colateral. */
+@media (min-width: 1201px) {
+  .vdc-header__navgroup {
+    /* -50% pura (centro geométrico exato) deixava só ~21px entre
+       "Menu" e o coração — o bloco de ações é largo (o texto "Falar
+       com um consultor" pesa) então mesmo cravado no centro real do
+       cabeçalho, a metade direita sobra pouco. Um empurrão leve pra
+       esquerda abre respiro de verdade desse lado; o esquerdo (marca)
+       tinha folga de sobra pra ceder um pouco sem apertar. */
+    position: absolute; left: calc(50% - var(--vdc-space-6)); top: 50%; transform: translate(-50%, -50%);
+  }
+}
+
+/* Celular bem estreito (~360px pra baixo, ex.: iPhone SE 1ª geração):
+   com a marca inteira ("VDC" + "Imóveis", que não quebra linha — são
+   dois elementos inline colados, sem espaço de verdade entre eles) +
+   "Menu" + coração, a largura que esses três elementos PRECISAM já
+   passa dos ~272px que sobram dentro do padding padrão do cabeçalho
+   (24px de cada lado) nessa largura de tela — nem zerando o espaço
+   entre eles sobraria margem. A única sobra segura de reduzir sem
+   tocar em fonte/logo/ícone é o padding do próprio cabeçalho: cai pra
+   8px só aqui (o resto da página mantém os 24px padrão), o suficiente
+   pra devolver a folga que falta. */
+@media (max-width: 400px) {
+  .vdc-header__inner { padding-inline: var(--vdc-space-2); column-gap: var(--vdc-space-2); }
+  .vdc-header__brand { margin-left: var(--vdc-space-1); }
+}
+
+/* Mega menu e painel de favoritos se ajustam à largura da tela. */
+@media (max-width: 1024px) {
+  .vdc-megamenu__grid { grid-template-columns: 1fr; gap: var(--vdc-space-6); padding: var(--vdc-space-6) var(--vdc-space-5); }
+  .vdc-megamenu.is-open { max-height: calc(100vh - 80px); }
+  .vdc-favorites { right: var(--vdc-space-4); left: var(--vdc-space-4); width: auto; }
+}
+
+/* ---------------------------------------------------------
+   6. Hero — carrossel de fotos + busca básica e avançada
+   --------------------------------------------------------- */
+.vdc-hero {
+  position: relative; overflow: hidden; background: var(--vdc-navy-900);
+  min-height: 780px; display: flex; align-items: center;
+  padding: calc(80px + var(--vdc-space-9)) var(--vdc-margin-mobile) var(--vdc-space-9);
+}
+@media (min-width: 768px) { .vdc-hero { padding-inline: var(--vdc-margin-tablet); } }
+@media (min-width: 1024px) { .vdc-hero { padding-inline: var(--vdc-margin-desktop); } }
+
+/* Carrossel: cada foto ocupa o espaço inteiro do hero, empilhadas
+   umas sobre as outras; só a que tem .is-active fica visível.
+   A troca de slide (main.js) apenas alterna essa classe — o fade
+   em si é feito pela transição de opacity abaixo. */
+/* Camada de fotos maior que o hero (18% de sobra em cima/embaixo) —
+   dá espaço pro parallax (main.js) deslocar a imagem verticalmente
+   sem nunca revelar a borda vazia. .vdc-hero tem overflow:hidden,
+   então o excesso sempre fica cortado. */
+.vdc-hero__slides { position: absolute; top: -18%; left: 0; right: 0; height: 136%; will-change: transform; }
+.vdc-hero__slide {
+  position: absolute; inset: 0; background-size: cover; background-position: center;
+  opacity: 0; transition: opacity 1200ms ease;
+}
+.vdc-hero__slide.is-active { opacity: 1; }
+/* Visual de marca (arco dourado/navy) mostrado só quando não há
+   nenhuma foto cadastrada em /admin/hero — nunca some com erro. */
+.vdc-hero__slide--fallback { background: radial-gradient(circle at 70% 30%, var(--vdc-navy-700), var(--vdc-navy-900)); display: flex; align-items: center; justify-content: center; }
+.vdc-hero__arc {
+  width: 900px; max-width: 130vw; height: auto; opacity: 0.7; pointer-events: none;
+}
+/* Véu navy sobre as fotos — garante contraste pro texto branco em
+   cima de qualquer imagem, mais escuro no topo/base (onde ficam o
+   texto e a barra de pontos) e mais claro no meio. */
+.vdc-hero__veil {
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(21,43,67,.80) 0%, rgba(21,43,67,.62) 38%, rgba(21,43,67,.72) 78%, rgba(21,43,67,.92) 100%);
+}
+
+/* Assinatura da marca no hero: sangra pelo canto inferior esquerdo,
+   bem discreta, e "desenha" o traço uma vez ao carregar a home. */
+.vdc-hero__signature {
+  position: absolute; z-index: 1; pointer-events: none;
+  bottom: -90px; left: -90px; width: 360px; height: 360px; opacity: .07;
+}
+.vdc-hero__signature-arc { stroke-dashoffset: 1; animation: vdc-signature-draw 900ms var(--vdc-ease) forwards; }
+.vdc-hero__signature-arc--gold { animation-delay: 80ms; }
+.vdc-hero__signature-arc--navy { animation-delay: 220ms; }
+@keyframes vdc-signature-draw {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .vdc-hero__signature-arc { animation: none; stroke-dashoffset: 0; }
+}
+
+/* Bolinhas de navegação do carrossel. O alvo de toque real é o
+   botão inteiro (32×32px, invisível); só o ::before de 8px aparece
+   visualmente — assim o clique é fácil sem o design ficar poluído. */
+.vdc-hero__dots {
+  position: absolute; left: 50%; bottom: var(--vdc-space-6); transform: translateX(-50%); z-index: 2;
+  display: flex; gap: 2px;
+}
+.vdc-hero__dot {
+  width: 32px; height: 32px; padding: 0; border: 0; background: transparent; cursor: pointer;
+  display: grid; place-items: center; border-radius: 50%;
+}
+.vdc-hero__dot::before {
+  content: ""; width: 8px; height: 8px; border-radius: 50%; border: 1px solid rgba(255,255,255,.6); background: transparent;
+  transition: background var(--vdc-dur-fast) var(--vdc-ease), width var(--vdc-dur-fast) var(--vdc-ease), border-radius var(--vdc-dur-fast) var(--vdc-ease);
+}
+/* Slide ativo: bolinha vira uma pílula dourada em vez de um círculo. */
+.vdc-hero__dot.is-active::before { background: var(--vdc-gold-500); border-color: var(--vdc-gold-500); width: 22px; border-radius: 4px; }
+.vdc-hero__dot:focus-visible { outline: 2px solid var(--vdc-gold-500); outline-offset: 2px; }
+
+/* Conteúdo do hero (texto + busca), centralizado sobre o véu. */
+.vdc-hero__inner {
+  position: relative; z-index: 1; max-width: 800px; margin-inline: auto; text-align: center;
+  display: flex; flex-direction: column; align-items: center;
+}
+.vdc-hero__eyebrow { color: var(--vdc-gold-500); }
+.vdc-hero__title {
+  font: 700 var(--vdc-size-display)/1.08 var(--vdc-font-display); letter-spacing: -0.02em;
+  color: #fff; margin-top: var(--vdc-space-3); text-shadow: 0 2px 24px rgba(0,0,0,.25);
+}
+.vdc-hero__title span { color: var(--vdc-gold-500); } /* destaque "segurança técnica" */
+.vdc-hero__lead {
+  font: 400 var(--vdc-size-lead)/1.65 var(--vdc-font-body); color: var(--vdc-navy-100);
+  letter-spacing: .01em; margin-top: var(--vdc-space-4); max-width: 56ch;
+}
+
+/* Cartão de busca (fundo navy semitransparente) com as duas abas. */
+.vdc-hero__search {
+  margin-top: var(--vdc-space-7); background: rgba(21, 43, 67, 0.62); border: 1px solid rgba(255,255,255,.16);
+  border-radius: var(--vdc-radius-sm); padding: var(--vdc-space-5); width: 100%; max-width: 640px;
+  box-shadow: var(--vdc-shadow-lg);
+}
+.vdc-hero__tabs { display: flex; justify-content: center; gap: var(--vdc-space-2); margin-bottom: var(--vdc-space-4); }
+.vdc-hero__tab {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px;
+  border: 1px solid rgba(255,255,255,.25); background: transparent; color: #fff;
+  font: 600 13px var(--vdc-font-display); letter-spacing: .04em; padding: 10px 18px; border-radius: var(--vdc-radius-full);
+  cursor: pointer; transition: background var(--vdc-dur-fast) var(--vdc-ease), color var(--vdc-dur-fast) var(--vdc-ease);
+}
+.vdc-hero__tab.is-active { background: var(--vdc-white); color: var(--vdc-navy-700); border-color: var(--vdc-white); }
+.vdc-hero__tab:focus-visible { outline: 2px solid var(--vdc-gold-500); outline-offset: 2px; }
+
+/* Busca básica: um campo de texto livre + botão. */
+.vdc-hero__search-row { display: flex; gap: var(--vdc-space-3); }
+.vdc-hero__search-field {
+  flex: 1; display: flex; align-items: center; gap: 10px; background: #fff; border-radius: var(--vdc-radius-sm);
+  padding: 0 var(--vdc-space-4); height: 48px;
+}
+.vdc-hero__search-field svg { color: var(--vdc-gray-600); flex-shrink: 0; transition: color var(--vdc-dur-fast) var(--vdc-ease); }
+.vdc-hero__search-field input {
+  border: 0; outline: 0; flex: 1; height: 100%; font: 400 16px var(--vdc-font-body); color: var(--vdc-ink); background: transparent;
+}
+.vdc-hero__search-field:focus-within { box-shadow: 0 0 0 2px var(--vdc-gold-500); border-radius: var(--vdc-radius-sm); }
+.vdc-hero__search-field:focus-within svg { color: var(--vdc-gold-500); }
+
+/* Busca avançada: tipo + bairro + venda/aluguel + preço máximo.
+   Escondida por padrão (atributo "hidden" no HTML); a aba
+   "Busca Avançada" troca qual painel aparece (ver data-search-panel
+   em main.js). */
+.vdc-hero__advanced { display: grid; gap: var(--vdc-space-3); }
+.vdc-hero__advanced-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--vdc-space-3); }
+.vdc-hero__advanced-submit { width: 100%; }
+/* <select> nativo com seta customizada (ícone SVG embutido como
+   data-URI, sem precisar de arquivo externo) pra combinar com o
+   resto dos ícones de linha do site. */
+.vdc-select {
+  appearance: none; -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23616E89' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 14px center; background-size: 16px;
+  padding-right: 40px; cursor: pointer;
+  /* Estado padrão ("Qualquer tipo") e estado com filtro escolhido
+     ("Apartamento") tinham o mesmo peso e cor — nada dizia, só de
+     olhar, se aquele campo estava filtrando ou não. data-has-value
+     é ligado via main.js no evento "change" de cada select. */
+  color: var(--vdc-gray-600); font-weight: 400;
+  transition: color var(--vdc-dur-fast) var(--vdc-ease), font-weight var(--vdc-dur-fast) var(--vdc-ease);
+}
+.vdc-select[data-has-value="true"] { color: var(--vdc-ink); font-weight: 600; }
+@media (max-width: 560px) {
+  .vdc-hero__advanced-grid { grid-template-columns: 1fr; } /* 1 campo por linha no celular */
+}
+
+/* Chips de busca rápida ("Casas à venda", bairros etc.), só aparecem
+   no modo de busca básica. */
+.vdc-hero__filters { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--vdc-space-2); margin-top: var(--vdc-space-5); }
+.vdc-hero__filter {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px;
+  border: 1px solid rgba(255,255,255,.3); color: var(--vdc-navy-100); background: rgba(255,255,255,.04);
+  font: 500 12px var(--vdc-font-data); letter-spacing: .04em; padding: 8px 14px; border-radius: var(--vdc-radius-sm);
+  text-decoration: none; transition: border-color var(--vdc-dur-fast) var(--vdc-ease), color var(--vdc-dur-fast) var(--vdc-ease), background var(--vdc-dur-fast) var(--vdc-ease);
+}
+.vdc-hero__filter:hover { border-color: var(--vdc-gold-500); color: var(--vdc-gold-300); background: rgba(201,164,78,.08); }
+.vdc-hero__filter:focus-visible { outline: 2px solid var(--vdc-gold-500); outline-offset: 2px; }
+
+/* Selos numéricos abaixo da busca ("4 especialidades", "CRECI 35889"). */
+.vdc-hero__badges { display: flex; justify-content: center; gap: var(--vdc-space-6); margin-top: var(--vdc-space-8); flex-wrap: wrap; }
+.vdc-hero__badge { display: flex; align-items: baseline; gap: 8px; }
+.vdc-hero__badge strong { font: 500 20px var(--vdc-font-data); color: var(--vdc-gold-500); }
+.vdc-hero__badge span { font: 400 13px var(--vdc-font-body); color: var(--vdc-navy-300); }
+
+@media (max-width: 640px) {
+  .vdc-hero { min-height: 660px; }
+  .vdc-hero__search-row { flex-direction: column; } /* campo e botão empilhados */
+}
+
+/* Celular deitado (ex.: 812×375): min-height de 660-780px força
+   rolagem enorme numa tela que só tem ~375px de altura. Solta a
+   altura mínima e encolhe o respiro vertical extra — o conteúdo
+   continua todo lá, só sem o espaço de sobra. */
+@media (max-height: 500px) and (orientation: landscape) {
+  .vdc-hero {
+    min-height: auto;
+    padding-top: calc(80px + var(--vdc-space-5));
+    padding-bottom: var(--vdc-space-5);
+  }
+  .vdc-hero__badges { margin-top: var(--vdc-space-5); }
+}
+
+/* ---------------------------------------------------------
+   7. Seções da home
+   --------------------------------------------------------- */
+
+/* Cabeçalho de seção reutilizado em várias partes da página
+   (rótulo dourado + título). */
+/* .vdc-section (tokens.css) vem com padding fixo de 96px/24px em
+   qualquer tela. O DESIGN.md §5 pede essa escala responsiva —
+   48px/24px no celular, 64px/48px no tablet, 96px/80px no desktop —
+   mas o token literal nunca foi atualizado pra isso. Sobrescrevemos
+   aqui (mobile-first) em vez de editar tokens.css, que é cópia fiel
+   do que a marca entregou. */
+.vdc-section { padding: var(--vdc-space-7) var(--vdc-margin-mobile); }
+@media (min-width: 768px) { .vdc-section { padding: var(--vdc-space-8) var(--vdc-margin-tablet); } }
+@media (min-width: 1024px) { .vdc-section { padding: var(--vdc-space-9) var(--vdc-margin-desktop); } }
+
+/* Ritmo: toda seção usava o mesmo respiro, do jeito mais denso
+   (equipe, imóveis, formulário) ao mais leve (uma fileira de selos).
+   Sem contraste, a página lê num compasso só. Selos é a seção mais
+   "leve" da home — uma fileira de círculos, sem card, sem texto
+   longo — então ganha um respiro menor de propósito, criando uma
+   pausa curta entre "Imóveis em destaque" e "Equipe", as duas mais
+   pesadas. */
+.vdc-section--tight { padding-block: var(--vdc-space-6); }
+@media (min-width: 768px) { .vdc-section--tight { padding-block: var(--vdc-space-7); } }
+@media (min-width: 1024px) { .vdc-section--tight { padding-block: var(--vdc-space-8); } }
+
+.vdc-section-head { max-width: 620px; margin-bottom: var(--vdc-space-7); }
+.vdc-section-head--center { margin-inline: auto; text-align: center; }
+.vdc-section-head .vdc-h2 { margin-top: var(--vdc-space-3); }
+
+/* --- 7.1 Especialidades (Consultoria / Engenharia / Arquitetura / Jurídico) ---
+   Bolder (impeccable): "a mesma mesa" — os 4 ícones sentam sobre um
+   fio dourado só (border-top do grid), puxados pra cima em exatamente
+   metade da própria altura via margin-top negativo, pra o centro do
+   círculo cair em cima do fio. Sem caixa por item: a linha é o que
+   une os quatro, não uma borda ao redor de cada um. */
+.vdc-specialties {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--vdc-space-7);
+  border-top: 3px solid var(--vdc-gold-500);
+  padding-top: var(--vdc-space-7); margin-top: var(--vdc-space-8);
+  text-align: center;
+}
+.vdc-specialty__icon {
+  width: 72px; height: 72px; border-radius: 50%; background: var(--vdc-navy-gradient);
+  display: grid; place-items: center; color: #fff; margin: calc(-1 * var(--vdc-space-7) - 36px) auto var(--vdc-space-5);
+  box-shadow: var(--vdc-shadow-md);
+  transition: background var(--vdc-dur-fast) var(--vdc-ease), transform var(--vdc-dur-fast) var(--vdc-ease);
+}
+.vdc-specialty:hover .vdc-specialty__icon { background: var(--vdc-gold-gradient); color: var(--vdc-navy-900); transform: translateY(-3px) scale(1.05); }
+.vdc-specialty__title {
+  font: 600 var(--vdc-size-h3)/1.2 var(--vdc-font-display); letter-spacing: -.02em;
+  color: var(--vdc-navy-700); margin-top: var(--vdc-space-3);
+}
+.vdc-specialty__text { margin-top: var(--vdc-space-2); margin-inline: auto; }
+
+/* Bug: com 2 colunas (2 linhas de 2), só a 1ª linha (Consultoria,
+   Engenharia) sentava no fio — ele é só a borda do topo do container,
+   então Arquitetura e Jurídico, na 2ª linha, flutuavam soltos sem
+   linha nenhuma embaixo. Mesma correção do breakpoint de 1 coluna
+   abaixo: cada item vira sua própria "mesa" (fio + ícone), em vez de
+   um fio só que só a 1ª linha alcança. */
+@media (max-width: 1024px) {
+  .vdc-specialties { grid-template-columns: repeat(2, 1fr); row-gap: var(--vdc-space-9); border-top: 0; padding-top: 0; }
+  .vdc-specialty { border-top: 3px solid var(--vdc-gold-500); padding-top: var(--vdc-space-7); }
+  .vdc-specialty__icon { margin-top: calc(-1 * var(--vdc-space-7) - 36px); }
+}
+@media (max-width: 560px) {
+  .vdc-specialties { grid-template-columns: 1fr; row-gap: var(--vdc-space-9); }
+}
+
+/* --- 7.2 Imóveis em destaque (cards) --- */
+/* 2 colunas (não 3) — card horizontal precisa de mais largura por
+   coluna do que o antigo card empilhado vertical precisava. */
+.vdc-properties { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--vdc-space-5); }
+
+/* Capa do card: a cor de fundo (navy/gold/sand) fica num ::before
+   separado do container, não no container em si — assim dá pra
+   aplicar zoom só na cor de fundo no hover, sem esticar o selo
+   "À VENDA" nem o botão de favoritar que ficam por cima (position:
+   relative + z-index:1 nos dois, logo abaixo). */
+.vdc-property__cover {
+  flex: 0 0 38%; min-height: 200px; position: relative; display: flex; align-items: flex-start; padding: var(--vdc-space-3);
+  overflow: hidden;
+}
+@media (max-width: 640px) { .vdc-property__cover { flex-basis: auto; aspect-ratio: 4 / 3; min-height: 0; } }
+.vdc-property__cover::before {
+  content: ""; position: absolute; inset: 0; z-index: 0;
+  transition: transform 500ms var(--vdc-ease);
+}
+/* .vdc-card:hover vem de tokens.css (sombra + borda dourada no
+   card inteiro); aqui só acrescentamos o zoom da cor de fundo. */
+.vdc-card:hover .vdc-property__cover::before { transform: scale(1.06); }
+.vdc-property__cover--navy::before { background: linear-gradient(160deg, var(--vdc-navy-700), var(--vdc-navy-900)); }
+.vdc-property__cover--gold::before { background: linear-gradient(160deg, var(--vdc-gold-700), var(--vdc-gold-500)); }
+.vdc-property__cover--sand::before { background: linear-gradient(160deg, var(--vdc-sand-400), var(--vdc-sand-100)); }
+.vdc-property__cover .vdc-chip { position: relative; z-index: 1; }
+
+/* Ilustração de linha por tipo de imóvel (casa, apê, comercial...) —
+   fica como uma "marca d'água" sobre o gradiente, usada só quando o
+   imóvel ainda não tem foto real cadastrada (ver .vdc-property__photo
+   abaixo). Some da view do ::before (que só cuida da cor de fundo) e
+   recebe o próprio zoom sutil no hover, levemente defasado do fundo
+   pra dar sensação de profundidade. */
+.vdc-property__icon {
+  position: absolute; inset: 0; margin: auto; width: 60%; height: 60%;
+  color: rgba(255, 255, 255, .4); opacity: .85; pointer-events: none;
+  transition: transform 500ms var(--vdc-ease), opacity 500ms var(--vdc-ease);
+}
+.vdc-card:hover .vdc-property__icon { transform: scale(1.05); opacity: 1; }
+
+/* Foto real do imóvel (cadastrada pelo admin) — substitui a
+   ilustração de linha quando existe. Mesmo z-index/posição da
+   ilustração (entra depois do ::before de cor, antes do selo e do
+   coração), mesmo zoom sutil no hover dos cards. */
+.vdc-property__photo {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+  transition: transform 500ms var(--vdc-ease);
+}
+.vdc-card:hover .vdc-property__photo { transform: scale(1.06); }
+
+/* Botão de favoritar (coração), canto superior direito da foto.
+   44×44px — mínimo de toque recomendado, mesmo padrão do
+   .vdc-header__icon-btn; o coração some preenchido e dourado quando
+   [aria-pressed="true"] (JS liga isso com base no localStorage, ver
+   toggleFavorite em main.js). */
+.vdc-property__fav {
+  position: absolute; top: 10px; right: 10px; width: 44px; height: 44px; z-index: 1;
+  display: grid; place-items: center; border-radius: 50%; border: 0; cursor: pointer;
+  background: rgba(21,43,67,.55); color: #fff;
+  transition: background var(--vdc-dur-fast) var(--vdc-ease), transform var(--vdc-dur-fast) var(--vdc-ease);
+}
+.vdc-property__fav:hover { transform: scale(1.06); }
+.vdc-property__fav:focus-visible { outline: 2px solid var(--vdc-gold-500); outline-offset: 2px; }
+.vdc-property__fav[aria-pressed="true"] { background: var(--vdc-gold-500); color: var(--vdc-navy-900); }
+/* Preenchimento entra em fade (fill-opacity), não troca de golpe —
+   o contorno do coração fica o tempo todo, só a "massa" aparece aos
+   poucos. Mais vivo que o corte seco de antes. */
+.vdc-heart-fill { transition: fill-opacity var(--vdc-dur-base) var(--vdc-ease); }
+.vdc-property__fav[aria-pressed="true"] .vdc-heart-fill { fill-opacity: 1; }
+.vdc-header__icon-btn.has-items .vdc-heart-fill { fill-opacity: 1; }
+/* Pulso ao favoritar (main.js liga .is-pulsing por um instante) —
+   resposta pequena e certeira pro gesto, não uma celebração grande
+   pra uma ação rotineira. */
+.vdc-property__fav.is-pulsing { animation: vdc-fav-pulse 420ms var(--vdc-ease); }
+@keyframes vdc-fav-pulse {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.22); }
+  100% { transform: scale(1); }
+}
+
+.vdc-property__body { flex: 1; min-width: 0; padding: var(--vdc-space-5); }
+
+/* Tags logo abaixo da foto — "Destaque" (só quando featured) e o
+   tipo do imóvel, como duas etiquetas leves (não o chip sólido do
+   selo de status, que já ocupa a foto). Dourado suave marca "isso é
+   especial", navy suave é só informativo — mesma separação de papel
+   que o resto do site já usa entre as duas cores. */
+.vdc-property__tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.vdc-property__tag {
+  display: inline-flex; align-items: center; padding: 4px 10px; border-radius: var(--vdc-radius-full);
+  font: 700 12px var(--vdc-font-display); letter-spacing: .05em; text-transform: uppercase;
+}
+.vdc-property__tag--featured { background: rgba(201, 164, 78, .14); color: var(--vdc-gold-700); }
+.vdc-property__tag--type { background: var(--vdc-navy-100); color: var(--vdc-navy-700); }
+
+.vdc-property__title { font: 600 var(--vdc-size-h4)/1.25 var(--vdc-font-display); color: var(--vdc-navy-700); margin-top: var(--vdc-space-3); }
+.vdc-property__location {
+  display: flex; align-items: center; gap: 4px; margin-top: 6px;
+  font: 500 13px var(--vdc-font-body); color: var(--vdc-gray-600);
+}
+.vdc-property__location svg { flex-shrink: 0; color: var(--vdc-gold-500); }
+
+.vdc-property__specs { display: flex; gap: var(--vdc-space-4); margin-top: var(--vdc-space-3); }
+.vdc-property__specs span { display: inline-flex; align-items: center; gap: 5px; font: 500 13px var(--vdc-font-data); color: var(--vdc-gray-600); }
+
+.vdc-property__meta { margin-top: var(--vdc-space-2); }
+
+/* Preço em pílula com contorno dourado — puxa o olho pro número mais
+   importante do card sem competir com o botão de contato (que segue
+   sólido navy, a ação primária de verdade). */
+.vdc-property__price {
+  display: inline-flex; margin-top: var(--vdc-space-4); padding: 7px 16px; border: 1.5px solid var(--vdc-gold-500);
+  border-radius: var(--vdc-radius-full); font: 700 15px var(--vdc-font-data); color: var(--vdc-navy-700);
+}
+.vdc-property__cta { margin-top: var(--vdc-space-3); width: 100%; text-align: center; }
+
+/* Single column here means each card is nearly full viewport width, so
+   the full-width .vdc-property__cta's own right edge (390px view:
+   container margin 24px + card padding 24px = 342px) lands inside the
+   fixed WhatsApp/Instagram FAB stack's footprint (56px + 24px offset,
+   starts at 310px) — a measured ~32px overlap. Reserve that clearance
+   on the grid itself so no card's CTA can ever sit under the FABs. */
+@media (max-width: 720px) { .vdc-properties { grid-template-columns: 1fr; padding-right: var(--vdc-space-9); } }
+
+/* --- 7.3 Selos de credencial (CRECI, Laudo Técnico etc.) ---
+   O círculo em si (.vdc-seal) já vem pronto de tokens.css; aqui só
+   organizamos vários lado a lado. */
+.vdc-seals { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--vdc-space-7); }
+.vdc-seals .vdc-seal { flex: 0 0 auto; }
+
+/* --- 7.4 Equipe --- */
+.vdc-team { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--vdc-space-5); text-align: center; }
+.vdc-team__avatar {
+  width: 96px; height: 96px; border-radius: 50%; margin-inline: auto; display: grid; place-items: center;
+  background: var(--vdc-navy-100); color: var(--vdc-navy-700); font: 700 24px var(--vdc-font-display);
+  border: 1.5px solid var(--vdc-gold-500);
+}
+/* Time real (Deyse Fontes/CREA-BA, Dr. José Ângelo/OAB-BA) e as duas
+   vagas ainda sem nome confirmado (PRODUCT.md — nome não pode ser
+   inventado) usavam exatamente o mesmo tratamento visual, lendo como
+   "metade da prova é enchimento" na seção que a marca mais quer
+   provar. Anel tracejado + rótulo deixam a lacuna honesta sem
+   fabricar um nome. */
+.vdc-team__avatar--placeholder {
+  border-style: dashed; border-color: var(--vdc-gray-400); background: var(--vdc-off-white); color: var(--vdc-gray-600);
+}
+.vdc-team__tag {
+  display: inline-block; margin-top: var(--vdc-space-2); padding: 3px 10px; border-radius: var(--vdc-radius-full);
+  background: var(--vdc-navy-100); color: var(--vdc-gray-600);
+  font: 600 11px var(--vdc-font-display); letter-spacing: .05em; text-transform: uppercase;
+}
+.vdc-team__name { font: 600 var(--vdc-size-h4)/1.25 var(--vdc-font-display); color: var(--vdc-navy-700); margin-top: var(--vdc-space-4); }
+.vdc-team__role { display: block; margin-top: 4px; }
+.vdc-team__credential { display: block; margin-top: 6px; }
+
+@media (max-width: 1024px) { .vdc-team { grid-template-columns: repeat(2, 1fr); gap: var(--vdc-space-6); } }
+/* Faltava esta quebra (as outras grades da home — especialidades,
+   imóveis — já tinham a versão 1 coluna); em ~375px, 2 colunas
+   deixavam "Consultor de Imóveis" quebrando em 2-3 linhas apertadas. */
+@media (max-width: 560px) { .vdc-team { grid-template-columns: 1fr; } }
+
+/* --- 7.5 Bloco CTA navy ("Não achou o imóvel ideal?") --- */
+.vdc-cta { background: var(--vdc-navy-gradient); color: #fff; border-radius: var(--vdc-radius-sm); padding: var(--vdc-space-8); position: relative; overflow: hidden; }
+.vdc-cta__inner { position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between; gap: var(--vdc-space-6); flex-wrap: wrap; }
+.vdc-cta__text { max-width: 46ch; }
+.vdc-cta__text .vdc-body { letter-spacing: .01em; } /* texto claro sobre navy: um toque de tracking a mais compensa a leitura */
+.vdc-cta__actions { display: flex; gap: var(--vdc-space-3); flex-wrap: wrap; }
+.vdc-cta__corner { position: absolute; bottom: -30%; right: -8%; width: 340px; opacity: .18; } /* arco decorativo, mesmo espírito do mega menu */
+
+/* --- 7.6 Contato ---
+   Antes eram duas caixas competindo (form vs WhatsApp), mesmo peso
+   visual, sem sinalizar que WhatsApp é o canal instantâneo e o
+   formulário é assíncrono. Agora é um único cartão com um seletor:
+   a cor do "thumb" que desliza entre as duas abas é o próprio sinal
+   funcional (verde = canal instantâneo, dourado = canal assíncrono),
+   não decoração. */
+.vdc-contact-hub { max-width: 640px; margin: 0 auto; }
+.vdc-contact-switch {
+  position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+  background: var(--vdc-off-white); border-radius: var(--vdc-radius-full); padding: 4px;
+}
+.vdc-contact-switch__thumb {
+  position: absolute; top: 4px; left: 4px; width: calc(50% - 4px); height: calc(100% - 8px);
+  border-radius: var(--vdc-radius-full); background: var(--vdc-whatsapp);
+  transition: transform var(--vdc-dur-base) var(--vdc-ease), background var(--vdc-dur-base) var(--vdc-ease);
+}
+.vdc-contact-switch[data-active="email"] .vdc-contact-switch__thumb { transform: translateX(100%); background: var(--vdc-gold-500); }
+.vdc-contact-switch__tab {
+  position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 14px; border: 0; background: transparent; cursor: pointer; border-radius: var(--vdc-radius-full);
+  font: 600 14px var(--vdc-font-display); color: var(--vdc-navy-700);
+  transition: color var(--vdc-dur-fast) var(--vdc-ease);
+}
+.vdc-contact-switch__tab.is-active { color: var(--vdc-navy-900); }
+.vdc-contact-switch__tab:focus-visible { outline: 2px solid var(--vdc-navy-700); outline-offset: 2px; }
+/* Ícone "salta" ao virar a aba ativa — o pop é o feedback de seleção,
+   não uma decoração solta (spring com leve overshoot, não um ease comum). */
+.vdc-contact-switch__icon { transition: transform 380ms cubic-bezier(.34,1.56,.64,1); }
+.vdc-contact-switch__tab.is-active .vdc-contact-switch__icon { transform: scale(1.2); }
+
+.vdc-contact-panel { margin-top: var(--vdc-space-7); }
+.vdc-contact-panel__whatsapp { background: var(--vdc-off-white); border-radius: var(--vdc-radius-sm); padding: var(--vdc-space-7); text-align: left; }
+.vdc-contact-panel__whatsapp-cta { width: 100%; margin-top: var(--vdc-space-6); }
+.vdc-contact__form { display: grid; gap: var(--vdc-space-4); }
+.vdc-contact__form label { font: 600 13px var(--vdc-font-display); color: var(--vdc-navy-700); display: block; margin-bottom: 6px; }
+.vdc-required { color: var(--vdc-alert); } /* asterisco de campo obrigatório */
+.vdc-contact__form-note { margin-top: -4px; }
+.vdc-contact__form textarea.vdc-input { height: 120px; padding-top: 12px; resize: vertical; font-family: var(--vdc-font-body); }
+.vdc-contact__info-row { display: flex; gap: var(--vdc-space-3); margin-top: var(--vdc-space-5); align-items: flex-start; }
+.vdc-contact__info-row svg { flex: 0 0 auto; color: var(--vdc-whatsapp); margin-top: 2px; }
+/* Botão de largura total no canto inferior direito colide com os
+   FABs fixos nessa faixa de scroll. Reserva a mesma folga à direita. */
+@media (max-width: 560px) {
+  .vdc-contact-panel__whatsapp { padding: var(--vdc-space-5); }
+  .vdc-contact-panel__whatsapp-cta { width: calc(100% - 64px); }
+}
+
+/* Botão flutuante do WhatsApp, sempre visível no canto da tela. */
+.vdc-whatsapp-fab {
+  position: fixed; right: 24px; bottom: 24px; z-index: var(--vdc-z-header); width: 56px; height: 56px; border-radius: 50%;
+  background: var(--vdc-whatsapp); color: #fff; display: grid; place-items: center; box-shadow: var(--vdc-shadow-lg);
+  transition: transform var(--vdc-dur-fast) var(--vdc-ease);
+}
+.vdc-whatsapp-fab:hover { transform: translateY(-2px) scale(1.04); }
+
+/* Botão flutuante do Instagram — empilhado acima do WhatsApp, mesmo
+   tamanho e mesma lógica; só a cor muda pro gradiente oficial da marca. */
+.vdc-instagram-fab {
+  position: fixed; right: 24px; bottom: 92px; z-index: var(--vdc-z-header); width: 56px; height: 56px; border-radius: 50%;
+  background: var(--vdc-instagram-gradient); color: #fff; display: grid; place-items: center; box-shadow: var(--vdc-shadow-lg);
+  transition: transform var(--vdc-dur-fast) var(--vdc-ease);
+}
+.vdc-instagram-fab:hover { transform: translateY(-2px) scale(1.04); }
+.vdc-instagram-fab:focus-visible, .vdc-whatsapp-fab:focus-visible { outline: 2px solid var(--vdc-navy-700); outline-offset: 3px; }
+
+/* Usuário pediu menos movimento no sistema: desliga o scroll suave
+   (as transições em si já são zeradas globalmente por tokens.css). */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+/* ---------------------------------------------------------
+   8. Estado vazio
+   Usado em 3 lugares: "sem imóveis em destaque" (home), "nenhum
+   imóvel encontrado" (busca) e "sem favoritos" (painel do coração)
+   — os dois primeiros usam o macro empty_state() de _macros.html;
+   o terceiro tem sua própria marcação, estilizada em 5.2 acima.
+   --------------------------------------------------------- */
+.vdc-empty {
+  grid-column: 1 / -1; text-align: center; padding: var(--vdc-space-9) var(--vdc-space-5);
+  display: flex; flex-direction: column; align-items: center; gap: var(--vdc-space-3);
+  background: var(--vdc-off-white); border-radius: var(--vdc-radius-sm);
+}
+.vdc-empty__icon {
+  width: 56px; height: 56px; border-radius: 50%; background: var(--vdc-navy-100); color: var(--vdc-navy-700);
+  display: grid; place-items: center; margin-bottom: var(--vdc-space-2);
+}
+.vdc-empty .vdc-body { max-width: 48ch; }
+.vdc-empty .vdc-btn { margin-top: var(--vdc-space-2); }
+
+/* ---------------------------------------------------------
+   9. Rodapé
+   --------------------------------------------------------- */
+.vdc-footer { background: var(--vdc-navy-gradient); color: #fff; padding: var(--vdc-space-9) 0 var(--vdc-space-6); }
+/* Mesma correção do cabeçalho: .vdc-container sozinho não dá margem
+   lateral, então o grid e a barra inferior do rodapé precisam da sua
+   própria (ver --vdc-margin-* no :root). */
+.vdc-footer__grid, .vdc-footer__bottom { padding-inline: var(--vdc-margin-mobile); }
+@media (min-width: 768px) { .vdc-footer__grid, .vdc-footer__bottom { padding-inline: var(--vdc-margin-tablet); } }
+@media (min-width: 1024px) { .vdc-footer__grid, .vdc-footer__bottom { padding-inline: var(--vdc-margin-desktop); } }
+.vdc-footer__grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: var(--vdc-space-7); }
+.vdc-footer__logo { height: 34px; margin-bottom: var(--vdc-space-4); }
+.vdc-footer__brand .vdc-body { color: var(--vdc-navy-100); }
+.vdc-footer__brand .vdc-caption { color: var(--vdc-gold-500); margin-top: var(--vdc-space-3); display: inline-block; }
+.vdc-footer__col ul { margin-top: var(--vdc-space-4); display: grid; gap: var(--vdc-space-3); }
+.vdc-footer__col a { text-decoration: none; color: var(--vdc-navy-100); font: 400 14px var(--vdc-font-body); letter-spacing: .01em; }
+.vdc-footer__col a:hover { color: var(--vdc-gold-500); }
+.vdc-footer__bottom {
+  display: flex; justify-content: space-between; margin-top: var(--vdc-space-8); padding-top: var(--vdc-space-5);
+  border-top: 1px solid rgba(255,255,255,.12); flex-wrap: wrap; gap: var(--vdc-space-3);
+}
+.vdc-footer__bottom .vdc-caption { color: var(--vdc-navy-300); }
+.vdc-footer__bottom-right { display: flex; align-items: center; gap: var(--vdc-space-3); }
+/* Acesso ao admin — discreto de propósito ("ao fundo como um botão
+   meio ícone"): sem texto, baixo contraste em repouso, só fica mais
+   visível no hover/foco. A rota em si já é protegida por senha
+   (require_admin); isso aqui é só o caminho até a porta, não a porta. */
+.vdc-footer__admin {
+  display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px;
+  border-radius: 50%; color: var(--vdc-navy-500); opacity: .55;
+  transition: opacity var(--vdc-dur-fast) var(--vdc-ease), color var(--vdc-dur-fast) var(--vdc-ease), background var(--vdc-dur-fast) var(--vdc-ease);
+}
+.vdc-footer__admin:hover { opacity: 1; color: var(--vdc-gold-500); background: rgba(255,255,255,.06); }
+.vdc-footer__admin:focus-visible { opacity: 1; outline: 2px solid var(--vdc-gold-500); outline-offset: 2px; }
+
+@media (max-width: 900px) { .vdc-footer__grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 560px) { .vdc-footer__grid { grid-template-columns: 1fr; } }
+
+/* ---------------------------------------------------------
+   10. Formulário multi-etapas (reaproveitado no cadastro de imóveis
+   do admin — ver templates/admin/imoveis_form.html)
+   --------------------------------------------------------- */
+
+/* 10.4 Wizard de cadastro */
+.vdc-wizard { max-width: 720px; margin: 0 auto; background: #fff; border: 1px solid var(--vdc-gray-400); border-radius: var(--vdc-radius-sm); box-shadow: var(--vdc-shadow-md); padding: var(--vdc-space-7); }
+
+/* Stepper "mesma mesa": os 4 ícones sentam numa linha só, mesmo
+   espírito da seção Especialidades da home — só que aqui a linha
+   preenche em dourado conforme o cadastro avança (barra de progresso
+   real, não decorativa). */
+.vdc-wizard__stepper { position: relative; padding: 0 var(--vdc-space-2); margin-bottom: var(--vdc-space-8); }
+.vdc-wizard__track { position: absolute; top: 22px; left: 22px; right: 22px; height: 2px; background: var(--vdc-gray-400); }
+.vdc-wizard__track-fill { height: 100%; width: 0%; background: var(--vdc-gold-500); transition: width var(--vdc-dur-base) var(--vdc-ease); }
+.vdc-wizard__steps { position: relative; z-index: 1; display: flex; justify-content: space-between; list-style: none; }
+.vdc-wizard__step { display: flex; flex-direction: column; align-items: center; }
+.vdc-wizard__step-icon {
+  width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center;
+  background: #fff; border: 1.5px solid var(--vdc-gray-400); color: var(--vdc-gray-600);
+  transition: background var(--vdc-dur-fast) var(--vdc-ease), border-color var(--vdc-dur-fast) var(--vdc-ease),
+              color var(--vdc-dur-fast) var(--vdc-ease), transform var(--vdc-dur-fast) var(--vdc-ease),
+              box-shadow var(--vdc-dur-fast) var(--vdc-ease);
+}
+.vdc-wizard__step.is-current .vdc-wizard__step-icon { border-color: var(--vdc-gold-500); border-width: 2px; color: var(--vdc-navy-900); transform: scale(1.08); box-shadow: 0 0 0 4px rgba(201,164,78,.18); }
+.vdc-wizard__step.is-done .vdc-wizard__step-icon { background: var(--vdc-gold-gradient); border-color: var(--vdc-gold-500); color: var(--vdc-navy-900); }
+.vdc-wizard__step-label { font: 600 11px var(--vdc-font-display); letter-spacing: .04em; text-transform: uppercase; color: var(--vdc-gray-600); margin-top: 8px; }
+.vdc-wizard__step.is-current .vdc-wizard__step-label, .vdc-wizard__step.is-done .vdc-wizard__step-label { color: var(--vdc-navy-700); }
+
+.vdc-wizard__body { min-height: 240px; }
+.vdc-wizard__panel { border: 0; padding: 0; margin: 0; }
+.vdc-wizard__panel legend { padding: 0; margin-bottom: var(--vdc-space-5); display: block; width: 100%; }
+.vdc-wizard__panel > label { font: 600 13px var(--vdc-font-display); color: var(--vdc-navy-700); display: block; margin-bottom: 6px; }
+.vdc-wizard__panel textarea.vdc-input { height: 100px; padding-top: 12px; resize: vertical; font-family: var(--vdc-font-body); }
+.vdc-wizard__grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--vdc-space-4); margin-bottom: var(--vdc-space-4); }
+.vdc-wizard__grid--3 { grid-template-columns: repeat(3, 1fr); }
+@media (max-width: 560px) {
+  .vdc-wizard { padding: var(--vdc-space-5); }
+  .vdc-wizard__grid, .vdc-wizard__grid--3 { grid-template-columns: 1fr; }
+}
+
+/* Campo com ícone — rótulo pequeno em caixa alta + valor por baixo,
+   dentro de um cartão com ícone à esquerda (em vez de label solto +
+   input isolado). Ícone reaproveita o mesmo traço usado nos passos
+   do wizard e nos benefícios — vocabulário visual, não decoração nova. */
+.vdc-field {
+  display: flex; align-items: center; gap: var(--vdc-space-3);
+  border: 1.5px solid var(--vdc-gray-400); border-radius: var(--vdc-radius-sm);
+  padding: 10px var(--vdc-space-4); background: #fff;
+  transition: border-color var(--vdc-dur-fast) var(--vdc-ease), box-shadow var(--vdc-dur-fast) var(--vdc-ease);
+}
+.vdc-field:focus-within { border-color: var(--vdc-navy-500); box-shadow: 0 0 0 2px var(--vdc-gold-500); }
+.vdc-field--full { margin-bottom: var(--vdc-space-4); }
+.vdc-field__icon {
+  flex: 0 0 auto; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--vdc-navy-100); color: var(--vdc-navy-700);
+  transition: background var(--vdc-dur-fast) var(--vdc-ease), color var(--vdc-dur-fast) var(--vdc-ease);
+}
+.vdc-field:focus-within .vdc-field__icon { background: var(--vdc-gold-gradient); color: var(--vdc-navy-900); }
+.vdc-field__body { flex: 1; min-width: 0; display: block; }
+.vdc-field__body label { font: 600 11px var(--vdc-font-display); letter-spacing: .05em; text-transform: uppercase; color: var(--vdc-gray-600); display: block; margin-bottom: 2px; }
+.vdc-field__input {
+  border: 0; outline: 0; width: 100%; padding: 0; font: 400 15px var(--vdc-font-body); color: var(--vdc-ink); background: transparent;
+}
+.vdc-field__input::placeholder { color: var(--vdc-gray-400); }
+/* number input sem as setinhas nativas — o ícone já comunica o tipo
+   de dado, as setinhas só adicionam ruído visual num campo estreito. */
+.vdc-field__input[type="number"]::-webkit-outer-spin-button,
+.vdc-field__input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.vdc-field__input[type="number"] { -moz-appearance: textfield; }
+/* Variante para textarea (descrição) — ícone sobe pro topo do bloco
+   em vez de centralizar na altura toda, já que o campo cresce. */
+.vdc-field--textarea { align-items: flex-start; padding-top: var(--vdc-space-3); padding-bottom: var(--vdc-space-3); }
+.vdc-field--textarea .vdc-field__icon { margin-top: 2px; }
+textarea.vdc-field__input { resize: vertical; min-height: 96px; line-height: 1.5; font-family: var(--vdc-font-body); }
+/* Corpo da notícia — o texto é longo, então o campo já nasce alto o
+   bastante pra escrever sem rolar dentro de uma caixinha. */
+textarea.vdc-field__input--tall { min-height: 320px; }
+
+/* Cartões de tipo de imóvel — rádio nativo escondido, o rótulo vira
+   o cartão clicável (mantém acessibilidade de teclado/leitor). Ícone
+   reaproveitado do macro property_cover_icon (mesmo traço das capas
+   de card em "Imóveis em destaque" — não inventa um símbolo novo). */
+.vdc-wizard__types { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--vdc-space-3); margin-bottom: var(--vdc-space-6); }
+.vdc-wizard__type input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.vdc-wizard__type-card {
+  position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+  text-align: center; min-height: 96px; padding: var(--vdc-space-4) var(--vdc-space-3);
+  border: 1.5px solid var(--vdc-gray-400); border-radius: var(--vdc-radius-sm); cursor: pointer;
+  font: 600 13px var(--vdc-font-display); color: var(--vdc-navy-700);
+  transition: border-color var(--vdc-dur-fast) var(--vdc-ease), background var(--vdc-dur-fast) var(--vdc-ease), box-shadow var(--vdc-dur-fast) var(--vdc-ease);
+}
+.vdc-wizard__type:hover .vdc-wizard__type-card { border-color: var(--vdc-navy-300); }
+.vdc-wizard__type-icon { width: 32px; height: 32px; color: var(--vdc-navy-300); pointer-events: none; transition: color var(--vdc-dur-fast) var(--vdc-ease); }
+.vdc-wizard__type-icon .vdc-property__icon { position: static; width: 32px; height: 32px; margin: 0; color: inherit; opacity: 1; }
+.vdc-wizard__type input:checked + .vdc-wizard__type-card { border-color: var(--vdc-gold-500); background: rgba(201,164,78,.08); box-shadow: var(--vdc-shadow-sm); }
+.vdc-wizard__type input:checked + .vdc-wizard__type-card .vdc-wizard__type-icon { color: var(--vdc-gold-700); }
+.vdc-wizard__type input:focus-visible + .vdc-wizard__type-card { outline: 2px solid var(--vdc-gold-500); outline-offset: 2px; }
+/* Selo de check — some por padrão, aparece (com pop via GSAP quando
+   disponível) só no cartão escolhido; a regra :checked garante o
+   estado final correto mesmo sem JS/GSAP. */
+.vdc-wizard__type-check {
+  position: absolute; top: 8px; right: 8px; width: 18px; height: 18px; border-radius: 50%; box-sizing: border-box;
+  padding: 3px; background: var(--vdc-gold-500); color: var(--vdc-navy-900); opacity: 0; transform: scale(0);
+}
+.vdc-wizard__type input:checked + .vdc-wizard__type-card .vdc-wizard__type-check { opacity: 1; transform: scale(1); }
+@media (max-width: 560px) { .vdc-wizard__types { grid-template-columns: 1fr 1fr; } }
+
+/* Entrada em cascata dos 6 cartões — mesmo tratamento das grades de
+   imóvel/benefício (ver main.js, ScrollTrigger.batch). */
+.js .vdc-wizard__type { opacity: 0; transform: translateY(12px); }
+
+/* Alternância venda/aluguel — mesmo padrão de rádio-oculto+rótulo. */
+.vdc-wizard__status { display: flex; gap: var(--vdc-space-3); }
+.vdc-wizard__status-opt input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.vdc-wizard__status-opt span {
+  display: block; padding: 12px 22px; border: 1.5px solid var(--vdc-gray-400); border-radius: var(--vdc-radius-full);
+  font: 600 13px var(--vdc-font-display); color: var(--vdc-navy-700); cursor: pointer;
+  transition: border-color var(--vdc-dur-fast) var(--vdc-ease), background var(--vdc-dur-fast) var(--vdc-ease), color var(--vdc-dur-fast) var(--vdc-ease);
+}
+.vdc-wizard__status-opt input:checked + span { border-color: var(--vdc-gold-500); background: var(--vdc-gold-500); color: var(--vdc-navy-900); }
+.vdc-wizard__status-opt input:focus-visible + span { outline: 2px solid var(--vdc-gold-500); outline-offset: 2px; }
+
+.vdc-wizard__nav { display: flex; align-items: center; margin-top: var(--vdc-space-7); gap: var(--vdc-space-3); }
+.vdc-wizard__nav [data-wizard-next], .vdc-wizard__nav [data-wizard-submit] { margin-left: auto; }
+/* No mobile, botão de avançar vira largura total em vez de ficar
+   preso no canto inferior direito — ali colide com os FABs fixos de
+   WhatsApp/Instagram, que ficam por cima e bloqueiam o toque. */
+@media (max-width: 560px) {
+  .vdc-wizard__nav { flex-direction: column-reverse; align-items: stretch; padding-right: 64px; }
+  .vdc-wizard__nav [data-wizard-next], .vdc-wizard__nav [data-wizard-submit], .vdc-wizard__nav [data-wizard-back] { margin-left: 0; width: 100%; }
+}
+
+/* Seletor de cor da capa (navy/gold/sand) — usado no passo de
+   publicação do cadastro de imóvel. Mesmo padrão de rádio-oculto dos
+   cartões de tipo, só que a cor É o próprio ícone (sem SVG). */
+.vdc-wizard__tones { display: flex; gap: var(--vdc-space-4); margin-bottom: var(--vdc-space-6); }
+.vdc-wizard__tone input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.vdc-wizard__tone-card {
+  position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px;
+  padding: var(--vdc-space-3); border: 1.5px solid transparent; border-radius: var(--vdc-radius-sm); cursor: pointer;
+  font: 600 12px var(--vdc-font-display); color: var(--vdc-navy-700);
+  transition: border-color var(--vdc-dur-fast) var(--vdc-ease);
+}
+.vdc-wizard__tone-swatch { width: 40px; height: 40px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px rgba(21,43,67,.15); }
+.vdc-wizard__tone-swatch--navy { background: var(--vdc-navy-gradient); }
+.vdc-wizard__tone-swatch--gold { background: var(--vdc-gold-gradient); }
+.vdc-wizard__tone-swatch--sand { background: var(--vdc-sand-gradient); }
+.vdc-wizard__tone input:checked + .vdc-wizard__tone-card { border-color: var(--vdc-gold-500); }
+.vdc-wizard__tone input:focus-visible + .vdc-wizard__tone-card { outline: 2px solid var(--vdc-gold-500); outline-offset: 2px; }
+.vdc-wizard__tone-check {
+  position: absolute; top: -4px; right: 2px; width: 16px; height: 16px; border-radius: 50%; box-sizing: border-box;
+  padding: 2px; background: var(--vdc-gold-500); color: var(--vdc-navy-900); opacity: 0; transform: scale(0);
+}
+.vdc-wizard__tone input:checked + .vdc-wizard__tone-card .vdc-wizard__tone-check { opacity: 1; transform: scale(1); }
+
+/* Interruptor (destacar na home?) — controle binário genuíno, não um
+   par de botões como venda/aluguel; um toggle deslizante é o
+   componente certo pra essa forma específica de escolha. */
+label.vdc-toggle { display: inline-flex; align-items: center; gap: var(--vdc-space-3); cursor: pointer; }
+.vdc-toggle input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.vdc-toggle__track {
+  position: relative; flex-shrink: 0; width: 44px; height: 26px; border-radius: var(--vdc-radius-full);
+  background: var(--vdc-gray-400); transition: background var(--vdc-dur-fast) var(--vdc-ease);
+}
+.vdc-toggle__thumb {
+  position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%;
+  background: #fff; box-shadow: var(--vdc-shadow-sm); transition: transform var(--vdc-dur-fast) var(--vdc-ease);
+}
+.vdc-toggle input:checked + .vdc-toggle__track { background: var(--vdc-gold-gradient); }
+.vdc-toggle input:checked + .vdc-toggle__track .vdc-toggle__thumb { transform: translateX(18px); }
+.vdc-toggle input:focus-visible + .vdc-toggle__track { outline: 2px solid var(--vdc-gold-500); outline-offset: 2px; }
+.vdc-toggle__label { font: 600 14px var(--vdc-font-display); color: var(--vdc-navy-700); }
+
+/* Dropzone de foto — troca o input nativo (botão feio + "nenhum
+   arquivo escolhido") por um ícone e uma frase só. Arrastar ou
+   clicar fazem a mesma coisa; a pré-visualização substitui o rótulo
+   assim que tem uma imagem (escolhida ou já salva, na edição). */
+.vdc-dropzone { position: relative; margin-bottom: var(--vdc-space-6); }
+.vdc-dropzone__input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.vdc-dropzone__label {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--vdc-space-2);
+  min-height: 108px; border: 1.5px dashed var(--vdc-gray-400); border-radius: var(--vdc-radius-sm);
+  background: var(--vdc-off-white); cursor: pointer; text-align: center; padding: var(--vdc-space-4);
+  transition: border-color var(--vdc-dur-fast) var(--vdc-ease), background var(--vdc-dur-fast) var(--vdc-ease);
+}
+.vdc-dropzone__label:hover, .vdc-dropzone.is-dragover .vdc-dropzone__label { border-color: var(--vdc-gold-500); background: rgba(201,164,78,.06); }
+.vdc-dropzone__input:focus-visible ~ .vdc-dropzone__label { outline: 2px solid var(--vdc-gold-500); outline-offset: 2px; }
+.vdc-dropzone__icon {
+  width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--vdc-navy-100); color: var(--vdc-navy-700); box-shadow: var(--vdc-shadow-sm);
+  transition: background var(--vdc-dur-fast) var(--vdc-ease), color var(--vdc-dur-fast) var(--vdc-ease), transform var(--vdc-dur-fast) var(--vdc-ease);
+}
+.vdc-dropzone__icon svg { width: 18px; height: 18px; }
+.vdc-dropzone__label:hover .vdc-dropzone__icon, .vdc-dropzone.is-dragover .vdc-dropzone__icon { background: var(--vdc-gold-gradient); color: var(--vdc-navy-900); transform: scale(1.06); }
+.vdc-dropzone__text { font: 600 14px var(--vdc-font-display); color: var(--vdc-navy-700); }
+
+.vdc-dropzone__preview { position: relative; border-radius: var(--vdc-radius-sm); overflow: hidden; aspect-ratio: 16/9; box-shadow: var(--vdc-shadow-sm); }
+.vdc-dropzone__preview img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.vdc-dropzone__remove {
+  position: absolute; top: 10px; right: 10px; width: 32px; height: 32px; border-radius: 50%;
+  background: rgba(21,43,67,.7); color: #fff; display: grid; place-items: center; border: 0; cursor: pointer;
+  transition: background var(--vdc-dur-fast) var(--vdc-ease);
+}
+.vdc-dropzone__remove:hover { background: var(--vdc-alert); }
+.vdc-dropzone__remove:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+/* =========================================================
+   10. Busca com mapa (/imoveis) — lista rolável à esquerda, mapa
+   travado (nunca se move) à direita. Mapa é Leaflet + OpenStreetMap
+   (API pública, sem chave); pins e clusters são reestilizados por
+   cima do tema padrão do plugin pra usar só navy/dourado da marca.
+
+   "Mapa travado, só a lista rola": em vez de sticky (que solta o
+   mapa quando a lista mais alta que ele termina de rolar — visível
+   com poucos imóveis), a seção toda tem altura = viewport menos
+   cabeçalho/barra de filtros, e só a COLUNA DA LISTA tem overflow-y
+   próprio. O mapa nunca entra nesse fluxo de rolagem; a página em si
+   só rola de novo depois que essa seção termina, revelando o rodapé.
+
+   Bug corrigido: a altura usava um "154px" fixo (chute de 80px de
+   cabeçalho + 74px de barra de filtros) — só batia com a realidade
+   quando a barra cabia numa linha só. Em larguras onde os filtros
+   quebram pra 2 linhas (ex.: 1024px), a barra real passa de 120px e a
+   seção ficava ~48px mais alta que a tela, cortando o rodapé do mapa
+   pra fora da área visível. --vdc-search-offset é medido de verdade
+   em JS (search-map.js) e atualizado no load/resize; 154px continua
+   como fallback só pro instante antes do JS rodar. */
+.vdc-search__bar { background: var(--vdc-off-white); border-bottom: 1px solid var(--vdc-gray-400); padding: var(--vdc-space-4) 0; }
+.vdc-search__filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.vdc-search__field-main {
+  display: flex; align-items: center; gap: 8px; flex: 1 1 220px; min-width: 190px;
+  height: 40px; padding: 0 var(--vdc-space-3); border: 1px solid var(--vdc-gray-400); border-radius: var(--vdc-radius-sm);
+  background: #fff; transition: border-color var(--vdc-dur-fast) var(--vdc-ease), box-shadow var(--vdc-dur-fast) var(--vdc-ease);
+}
+.vdc-search__field-main svg { color: var(--vdc-gray-600); flex-shrink: 0; }
+.vdc-search__field-main input { border: 0; outline: 0; flex: 1; height: 100%; font: 400 13px var(--vdc-font-body); color: var(--vdc-ink); background: transparent; }
+.vdc-search__field-main:focus-within { border-color: var(--vdc-navy-500); box-shadow: 0 0 0 2px var(--vdc-gold-500); }
+.vdc-search__field-submit {
+  flex-shrink: 0; width: 26px; height: 26px; margin-right: -6px; border: 0; border-radius: 50%;
+  display: grid; place-items: center; color: var(--vdc-gray-600); background: transparent; cursor: pointer;
+  transition: background var(--vdc-dur-fast) var(--vdc-ease), color var(--vdc-dur-fast) var(--vdc-ease);
+}
+.vdc-search__field-submit:hover { background: var(--vdc-navy-100); color: var(--vdc-navy-700); }
+/* Chips de filtro (select) tratados como controle tipo botão — pílula
+   totalmente arredondada, igual ao resto dos botões do site, em vez
+   do --vdc-radius-sm de 4px que os <input> de texto usam. Mesma
+   lógica binária do DESIGN.md, só reconhecendo que aqui a pessoa está
+   "apertando um filtro", não preenchendo um campo. */
+.vdc-search__filters .vdc-select {
+  width: auto; flex: 0 0 auto; min-width: 0; height: 40px; padding: 0 30px 0 14px;
+  border-radius: var(--vdc-radius-full); font-size: 13px; background-size: 13px; background-position: right 10px center;
+}
+@media (max-width: 860px) {
+  .vdc-search__field-main { flex-basis: 100%; }
+  .vdc-search__filters .vdc-select { flex: 1 1 45%; }
+}
+
+.vdc-search__head { display: flex; align-items: center; justify-content: space-between; gap: var(--vdc-space-4); margin-bottom: var(--vdc-space-4); flex-wrap: wrap; }
+
+/* 154px ≈ 80px do cabeçalho fixo + ~74px da barra de filtros (agora
+   compacta). Sem essa conta o mapa ficaria alto demais ou curto
+   demais dependendo da tela — o min-height é só uma rede de segurança
+   pra viewports muito baixos (ex.: celular deitado). */
+/* Lista ~34% / mapa ~66% (era quase meio a meio) — o mapa é o
+   protagonista aqui, a lista é a navegação lateral. minmax(320px, 34%):
+   o piso em px garante que o card compacto nunca fique ilegível numa
+   tela pequena, o teto em % é o que faz a proporção acompanhar telas
+   maiores sem o mapa nunca cair abaixo de ~65%. */
+.vdc-search__split { display: grid; grid-template-columns: minmax(320px, 34%) 1fr; gap: var(--vdc-space-5); height: calc(100vh - var(--vdc-search-offset, 154px)); min-height: 520px; padding-block: var(--vdc-space-5); }
+/* Tablet/desktop estreito: a lista cede mais espaço ainda pro mapa
+   continuar utilizável (não só proporcional — em px também). */
+@media (max-width: 1200px) { .vdc-search__split { grid-template-columns: minmax(280px, 32%) 1fr; } }
+.vdc-search__list { height: 100%; overflow-y: auto; padding-right: var(--vdc-space-2); }
+/* 1 coluna — a coluna de lista ao lado do mapa é estreita demais pra
+   caber 2 cards horizontais lado a lado sem espremer o conteúdo. */
+.vdc-search__cards { display: grid; grid-template-columns: 1fr; gap: var(--vdc-space-3); }
+
+/* Card compacto só dentro da lista de busca — o mesmo macro
+   property_card() é usado em cheio na home e na ficha do imóvel; aqui
+   só encolhemos via seletor descendente, sem tocar no macro nem nas
+   outras telas. Cabe mais imóvel na tela sem rolar, que era o pedido. */
+.vdc-search__cards .vdc-card { cursor: pointer; }
+.vdc-search__cards .vdc-property__cover { flex: 0 0 128px; min-height: 0; padding: var(--vdc-space-2); }
+.vdc-search__cards .vdc-property__body { padding: var(--vdc-space-4); }
+.vdc-search__cards .vdc-property__tag { padding: 3px 8px; font-size: 10px; }
+.vdc-search__cards .vdc-property__title { font-size: 16px; line-height: 1.3; margin-top: 6px; }
+.vdc-search__cards .vdc-property__location { margin-top: 4px; font-size: 12px; }
+.vdc-search__cards .vdc-property__specs { margin-top: var(--vdc-space-2); gap: var(--vdc-space-3); }
+.vdc-search__cards .vdc-property__specs span { font-size: 12px; }
+.vdc-search__cards .vdc-property__price { margin-top: var(--vdc-space-2); padding: 5px 12px; font-size: 13px; }
+.vdc-search__cards .vdc-property__cta { height: 38px; margin-top: var(--vdc-space-3); padding: 0 var(--vdc-space-4); font-size: 12px; }
+.vdc-search__cards .vdc-property__fav { width: 34px; height: 34px; top: 6px; right: 6px; }
+
+/* Imóvel selecionado — clique na lista OU no marcador correspondente
+   (ver search-map.js). Mesmo tom dourado do "piscar" que o popup do
+   mapa já usava (.is-map-highlight), só que persistente em vez de
+   sumir sozinho: continua marcado até outro imóvel ser selecionado. */
+.vdc-search__cards .vdc-card.is-selected {
+  border-color: var(--vdc-gold-500); box-shadow: 0 0 0 2px var(--vdc-gold-500);
+}
+/* Same fixed-FAB clearance as .vdc-properties (see that rule's comment) —
+   the list column narrows to near-full-width on small viewports too. */
+@media (max-width: 720px) { .vdc-search__cards { padding-right: var(--vdc-space-9); } }
+
+/* Piscada breve no card quando a pessoa clica "Ver na lista" no popup
+   do mapa — ajuda a achar o card certo numa lista longa sem precisar
+   de scroll manual depois do scrollIntoView. */
+.vdc-card.is-map-highlight { animation: vdc-map-highlight 1.6s var(--vdc-ease); }
+@keyframes vdc-map-highlight {
+  0%, 100% { box-shadow: var(--vdc-shadow-sm); border-color: var(--vdc-gray-400); }
+  15%, 60% { box-shadow: 0 0 0 3px var(--vdc-gold-500); border-color: var(--vdc-gold-500); }
+}
+@media (prefers-reduced-motion: reduce) { .vdc-card.is-map-highlight { animation: none; box-shadow: 0 0 0 3px var(--vdc-gold-500); } }
+
+.vdc-search__map-col { height: 100%; }
+.vdc-search__map {
+  height: 100%; border-radius: var(--vdc-radius-sm); overflow: hidden;
+  border: 1px solid var(--vdc-gray-400); box-shadow: var(--vdc-shadow-sm); background: var(--vdc-off-white);
+}
+
+/* Alternador Lista/Mapa — só existe no celular (display:none por
+   padrão; a media query abaixo liga). No desktop os dois painéis já
+   ficam lado a lado o tempo todo, então a barra some por completo. */
+.vdc-search__tabs {
+  display: none; gap: 4px; padding: 4px; margin-bottom: var(--vdc-space-4);
+  background: var(--vdc-off-white); border: 1px solid var(--vdc-gray-400);
+  border-radius: var(--vdc-radius-full); width: fit-content;
+}
+.vdc-search__tab {
+  display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 var(--vdc-space-4);
+  border: 0; background: transparent; border-radius: var(--vdc-radius-full); cursor: pointer;
+  font: 600 13px var(--vdc-font-display); color: var(--vdc-gray-600);
+  transition: background var(--vdc-dur-fast) var(--vdc-ease), color var(--vdc-dur-fast) var(--vdc-ease);
+}
+.vdc-search__tab svg { flex-shrink: 0; }
+.vdc-search__tab.is-active { background: var(--vdc-navy-gradient); color: #fff; }
+.vdc-search__tab:focus-visible { outline: 2px solid var(--vdc-gold-500); outline-offset: 2px; }
+
+@media (max-width: 960px) {
+  .vdc-search__split { grid-template-columns: 1fr; height: auto; }
+  .vdc-search__list { height: auto; overflow-y: visible; order: 1; }
+  .vdc-search__map-col { order: 0; height: 440px; }
+
+  .vdc-search__tabs { display: inline-flex; }
+  /* Um painel some por vez — o JS só alterna a classe no .vdc-search__split;
+     "Lista" é o estado inicial (nenhuma classe extra), sem depender de JS
+     ter rodado a tempo de evitar um flash dos dois empilhados. */
+  .vdc-search__split:not(.is-mobile-tab-map) .vdc-search__map-col { display: none; }
+  .vdc-search__split.is-mobile-tab-map .vdc-search__list { display: none; }
+}
+
+/* Pin customizado (L.divIcon) — pílula navy com o preço, "rabinho"
+   feito com um pseudo-elemento rotacionado 45° (mesma ideia da gota
+   de mapa convencional, mas na paleta da marca, sem ícone genérico). */
+.vdc-map-pin {
+  position: relative; display: inline-flex; align-items: center; justify-content: center;
+  min-width: 34px; height: 30px; padding: 0 10px; border-radius: var(--vdc-radius-full);
+  background: var(--vdc-navy-gradient); color: #fff; font: 700 12px var(--vdc-font-data);
+  box-shadow: var(--vdc-shadow-md); border: 2px solid #fff; white-space: nowrap; cursor: pointer;
+}
+.vdc-map-pin::after {
+  content: ""; position: absolute; left: 50%; bottom: -6px; width: 9px; height: 9px;
+  background: var(--vdc-navy-700); transform: translateX(-50%) rotate(45deg); z-index: -1;
+}
+.vdc-map-pin--aluguel { background: var(--vdc-gold-gradient); color: var(--vdc-navy-900); }
+.vdc-map-pin--aluguel::after { background: var(--vdc-gold-500); }
+/* Marcador do imóvel selecionado (clique na lista ou no próprio pin) —
+   mesmo anel dourado do card .is-selected, pra reforçar visualmente
+   que lista e mapa estão apontando pro mesmo imóvel. */
+.vdc-map-pin.is-selected {
+  transform: scale(1.1); box-shadow: 0 0 0 3px var(--vdc-gold-500), var(--vdc-shadow-lg);
+}
+
+/* Cluster (Leaflet.markercluster) — substitui o azul padrão do
+   plugin por três tons de navy (leque de densidade: poucos/médios/
+   muitos imóveis na área), no mesmo espírito do leque tonal já usado
+   no resto do site. */
+.vdc-map-cluster { background: transparent !important; }
+.vdc-map-cluster div {
+  display: grid; place-items: center; width: 100%; height: 100%; border-radius: 50%;
+  color: #fff; font: 700 13px var(--vdc-font-data); box-shadow: var(--vdc-shadow-md); border: 2px solid #fff;
+}
+.vdc-map-cluster--small div { background: var(--vdc-navy-500); }
+.vdc-map-cluster--medium div { background: var(--vdc-navy-700); }
+.vdc-map-cluster--large div { background: var(--vdc-navy-900); }
+
+/* Popup ao clicar num pin — versão compacta do .vdc-card, só com
+   título, bairro/tipo, preço e link pro card correspondente na lista. */
+.vdc-map-popup { display: grid; gap: 6px; min-width: 190px; }
+.vdc-map-popup strong { display: block; font: 600 13px var(--vdc-font-display); color: var(--vdc-navy-700); }
+.vdc-map-popup span { display: block; font: 500 12px var(--vdc-font-data); color: var(--vdc-gray-600); }
+/* Preço tem seu próprio peso dentro do popup — é a primeira coisa que
+   a pessoa quer ver ao clicar num pin, mesmo já estando no preço do
+   próprio pin (o popup confirma com os specs ao lado). */
+.vdc-map-popup span.vdc-map-popup__price { font: 700 14px var(--vdc-font-data); color: var(--vdc-navy-700); }
+/* Especificidade extra (.leaflet-popup-content na frente) de propósito:
+   o CSS do Leaflet carrega depois do nosso (ver extra_head em
+   search.html), então um seletor "do mesmo peso" perderia o empate
+   pro azul padrão do link dentro do popup. */
+.leaflet-popup-content .vdc-map-popup a { font: 600 12px var(--vdc-font-display); color: var(--vdc-gold-700); text-decoration: none; }
+.leaflet-popup-content .vdc-map-popup a:hover { text-decoration: underline; }
+
+/* Leaflet monta os próprios elementos (.leaflet-*) fora do nosso
+   controle de markup — só ajustamos raio/sombra/fonte pra combinar
+   com o resto do site, sem mexer na mecânica do mapa em si. */
+.leaflet-popup-content-wrapper { border-radius: var(--vdc-radius-sm); box-shadow: var(--vdc-shadow-lg); }
+.leaflet-popup-content { font-family: var(--vdc-font-body); margin: 10px 12px; }
+.leaflet-popup-tip { box-shadow: var(--vdc-shadow-lg); }
+.leaflet-container { font-family: var(--vdc-font-body); }
+.leaflet-control-attribution { font-size: 10px; }
+
+/* =========================================================
+   11. Notícias (/noticias e /noticias/<slug>) — listagem com busca,
+   filtro por categoria, card grande da mais recente e grade dos
+   demais posts; e a página de leitura de um post.
+   ========================================================= */
+.vdc-news__lead { margin-inline: auto; margin-top: var(--vdc-space-3); }
+
+/* Busca + filtros: pílula de busca larga com botão sólido ao lado,
+   e as categorias como chips de alternância logo abaixo. */
+.vdc-news__toolbar { display: flex; gap: var(--vdc-space-3); justify-content: center; flex-wrap: wrap; margin-bottom: var(--vdc-space-4); }
+.vdc-news__field {
+  display: flex; align-items: center; gap: 10px; flex: 0 1 420px; min-width: 220px;
+  height: 46px; padding: 0 var(--vdc-space-4); background: #fff;
+  border: 1px solid var(--vdc-gray-400); border-radius: var(--vdc-radius-full);
+  transition: border-color var(--vdc-dur-fast) var(--vdc-ease), box-shadow var(--vdc-dur-fast) var(--vdc-ease);
+}
+.vdc-news__field svg { color: var(--vdc-gray-600); flex-shrink: 0; }
+.vdc-news__field input { border: 0; outline: 0; flex: 1; height: 100%; font: 400 14px var(--vdc-font-body); color: var(--vdc-ink); background: transparent; }
+.vdc-news__field:focus-within { border-color: var(--vdc-navy-500); box-shadow: 0 0 0 2px var(--vdc-gold-500); }
+.vdc-news__submit { height: 46px; padding-inline: var(--vdc-space-6); }
+
+.vdc-news__filters { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: var(--vdc-space-7); }
+.vdc-news__filter {
+  display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 14px;
+  border: 1px solid var(--vdc-gray-400); border-radius: var(--vdc-radius-full); background: #fff;
+  font: 600 12px var(--vdc-font-display); color: var(--vdc-navy-700); text-decoration: none;
+  transition: border-color var(--vdc-dur-fast) var(--vdc-ease), background var(--vdc-dur-fast) var(--vdc-ease), color var(--vdc-dur-fast) var(--vdc-ease);
+}
+.vdc-news__filter:hover { border-color: var(--vdc-gold-500); }
+.vdc-news__filter.is-active { background: var(--vdc-navy-gradient); border-color: transparent; color: #fff; }
+.vdc-news__filter-count { font: 500 11px var(--vdc-font-data); opacity: .65; }
+
+/* Etiquetas do post (categoria / "mais recente") — mesmas duas famílias
+   de cor já usadas nos cards de imóvel: dourado marca destaque, navy é
+   informativo. */
+.vdc-news__tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.vdc-news__tag {
+  display: inline-flex; align-items: center; padding: 4px 10px; border-radius: var(--vdc-radius-full);
+  font: 700 10px var(--vdc-font-display); letter-spacing: .05em; text-transform: uppercase;
+}
+.vdc-news__tag--latest { background: rgba(201, 164, 78, .16); color: var(--vdc-gold-700); }
+.vdc-news__tag--category { background: var(--vdc-navy-100); color: var(--vdc-navy-700); }
+.vdc-news__meta { display: block; font: 500 12px var(--vdc-font-data); color: var(--vdc-gray-600); }
+
+/* Bloco de cor + ícone quando o post não tem imagem de capa — mesma
+   solução dos imóveis sem foto, pra nunca deixar um buraco branco. */
+.vdc-news__placeholder {
+  position: absolute; inset: 0; display: grid; place-items: center;
+  background: var(--vdc-navy-gradient); color: rgba(255, 255, 255, .45);
+}
+
+/* Card grande da notícia mais recente: imagem à esquerda, texto à
+   direita (empilha no celular). */
+.vdc-news__featured {
+  display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: stretch;
+  background: #fff; border: 1px solid var(--vdc-gray-400); border-radius: var(--vdc-radius-sm);
+  overflow: hidden; box-shadow: var(--vdc-shadow-sm); text-decoration: none;
+  margin-bottom: var(--vdc-space-6);
+  transition: box-shadow var(--vdc-dur-fast) var(--vdc-ease), border-color var(--vdc-dur-fast) var(--vdc-ease), transform var(--vdc-dur-fast) var(--vdc-ease);
+}
+.vdc-news__featured:hover { box-shadow: var(--vdc-shadow-md); border-color: var(--vdc-gold-500); transform: translateY(-2px); }
+.vdc-news__featured-media { position: relative; min-height: 280px; overflow: hidden; }
+.vdc-news__featured-media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.vdc-news__featured-body { display: flex; flex-direction: column; gap: var(--vdc-space-3); justify-content: center; padding: var(--vdc-space-7); }
+.vdc-news__featured-title { font: 700 var(--vdc-size-h3)/1.2 var(--vdc-font-display); color: var(--vdc-navy-700); }
+.vdc-news__featured-excerpt { margin: 0; }
+
+/* Grade dos demais posts. */
+.vdc-news__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--vdc-space-5); }
+.vdc-news__card {
+  display: flex; flex-direction: column; background: #fff; text-decoration: none;
+  border: 1px solid var(--vdc-gray-400); border-radius: var(--vdc-radius-sm); overflow: hidden;
+  box-shadow: var(--vdc-shadow-sm);
+  transition: box-shadow var(--vdc-dur-fast) var(--vdc-ease), border-color var(--vdc-dur-fast) var(--vdc-ease), transform var(--vdc-dur-fast) var(--vdc-ease);
+}
+.vdc-news__card:hover { box-shadow: var(--vdc-shadow-md); border-color: var(--vdc-gold-500); transform: translateY(-2px); }
+.vdc-news__card-media { position: relative; aspect-ratio: 16 / 10; overflow: hidden; }
+.vdc-news__card-media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.vdc-news__card-body { display: flex; flex-direction: column; gap: 6px; padding: var(--vdc-space-5); }
+.vdc-news__card-category { color: var(--vdc-gold-700); }
+.vdc-news__card-title { font: 600 var(--vdc-size-h4)/1.25 var(--vdc-font-display); color: var(--vdc-navy-700); }
+.vdc-news__card-excerpt { color: var(--vdc-gray-600); }
+
+@media (max-width: 1024px) { .vdc-news__grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 760px) {
+  .vdc-news__featured { grid-template-columns: 1fr; }
+  .vdc-news__featured-media { min-height: 0; aspect-ratio: 16 / 10; }
+  .vdc-news__featured-body { padding: var(--vdc-space-5); }
+  .vdc-news__grid { grid-template-columns: 1fr; }
+}
+
+/* --- Página de leitura de um post --- */
+.vdc-post__shell { max-width: 760px; }
+.vdc-post__back { display: inline-block; margin-bottom: var(--vdc-space-5); font: 600 13px var(--vdc-font-display); color: var(--vdc-gray-600); text-decoration: none; }
+.vdc-post__back:hover { color: var(--vdc-navy-700); }
+.vdc-post__tags { margin-bottom: var(--vdc-space-3); }
+.vdc-post__title { margin-bottom: var(--vdc-space-3); }
+.vdc-post__meta { margin-bottom: var(--vdc-space-6); }
+.vdc-post__cover { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: var(--vdc-radius-sm); margin-bottom: var(--vdc-space-6); }
+/* O resumo entra como "linha fina" do texto: maior que o corpo e com
+   um fio dourado à esquerda, separando-o do artigo em si. */
+.vdc-post__excerpt {
+  font: 400 18px/1.6 var(--vdc-font-body); color: var(--vdc-navy-700);
+  border-left: 3px solid var(--vdc-gold-500); padding-left: var(--vdc-space-4);
+  margin-bottom: var(--vdc-space-6);
+}
+.vdc-post__body p { font: 400 var(--vdc-size-body)/1.75 var(--vdc-font-body); color: var(--vdc-ink); margin-bottom: var(--vdc-space-4); }
+.vdc-post__cta {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--vdc-space-5); flex-wrap: wrap;
+  margin-top: var(--vdc-space-8); padding: var(--vdc-space-6);
+  background: var(--vdc-navy-gradient); border-radius: var(--vdc-radius-sm);
+}
+.vdc-post__cta-title { font: 600 var(--vdc-size-h4)/1.25 var(--vdc-font-display); color: #fff; margin-top: 6px; }
+.vdc-post__cta-text { color: var(--vdc-navy-100); margin-top: 4px; }
+.vdc-post__related { margin-top: var(--vdc-space-9); }
+.vdc-post__related-title { margin-bottom: var(--vdc-space-5); }
+
+/* =========================================================
+   12. Equipe (/equipe) — perfil por integrante, com foto (ou o
+   avatar de iniciais, quando não há foto) e o "sobre" da pessoa.
+   ========================================================= */
+.vdc-teampage__lead { margin-inline: auto; margin-top: var(--vdc-space-3); }
+.vdc-teampage { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--vdc-space-5); }
+.vdc-teampage__card {
+  display: flex; gap: var(--vdc-space-5); padding: var(--vdc-space-5);
+  background: #fff; border: 1px solid var(--vdc-gray-400); border-radius: var(--vdc-radius-sm);
+  box-shadow: var(--vdc-shadow-sm);
+  transition: box-shadow var(--vdc-dur-fast) var(--vdc-ease), border-color var(--vdc-dur-fast) var(--vdc-ease);
+}
+.vdc-teampage__card:hover { box-shadow: var(--vdc-shadow-md); border-color: var(--vdc-gold-500); }
+.vdc-teampage__media { flex-shrink: 0; }
+.vdc-teampage__photo {
+  width: 120px; height: 120px; border-radius: 50%; object-fit: cover;
+  border: 1.5px solid var(--vdc-gold-500);
+}
+.vdc-teampage__avatar { width: 120px; height: 120px; font-size: 30px; margin-inline: 0; }
+.vdc-teampage__body { min-width: 0; }
+.vdc-teampage__name { font: 600 var(--vdc-size-h4)/1.25 var(--vdc-font-display); color: var(--vdc-navy-700); }
+.vdc-teampage__bio { margin-top: var(--vdc-space-4); border-top: 1px solid var(--vdc-gray-400); padding-top: var(--vdc-space-4); }
+.vdc-teampage__bio p { font: 400 15px/1.7 var(--vdc-font-body); color: var(--vdc-gray-600); }
+.vdc-teampage__bio p + p { margin-top: var(--vdc-space-3); }
+.vdc-teampage__cta {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--vdc-space-5); flex-wrap: wrap;
+  margin-top: var(--vdc-space-8); padding: var(--vdc-space-6);
+  background: var(--vdc-navy-gradient); border-radius: var(--vdc-radius-sm);
+}
+.vdc-teampage__cta-title { font: 600 var(--vdc-size-h4)/1.25 var(--vdc-font-display); color: #fff; margin-top: 6px; }
+.vdc-teampage__cta-text { color: var(--vdc-navy-100); margin-top: 4px; }
+@media (max-width: 900px) { .vdc-teampage { grid-template-columns: 1fr; } }
+@media (max-width: 560px) {
+  .vdc-teampage__card { flex-direction: column; }
+  .vdc-teampage__photo, .vdc-teampage__avatar { width: 96px; height: 96px; }
+}
+
+/* =========================================================
+   13. Quem somos (/quem-somos) — hero com foto, faixa de números,
+   história com selo e os princípios (missão/visão/valores).
+   ========================================================= */
+.vdc-about__hero {
+  position: relative; background: var(--vdc-navy-900) center/cover no-repeat;
+  padding-block: var(--vdc-space-9);
+}
+/* Véu navy por cima da foto: o texto branco precisa de contraste
+   garantido, independente da imagem que o admin subir. */
+.vdc-about__hero::before {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(100deg, rgba(21,43,67,.92) 0%, rgba(21,43,67,.72) 55%, rgba(21,43,67,.55) 100%);
+}
+.vdc-about__hero--plain::before { background: var(--vdc-navy-gradient); }
+.vdc-about__hero-inner { position: relative; }
+.vdc-about__crumbs { display: flex; align-items: center; gap: 8px; margin-bottom: var(--vdc-space-5); font: 500 13px var(--vdc-font-body); color: var(--vdc-navy-300); }
+.vdc-about__crumbs a { color: var(--vdc-navy-100); text-decoration: none; }
+.vdc-about__crumbs a:hover { color: var(--vdc-gold-500); }
+.vdc-about__eyebrow { color: var(--vdc-gold-500); }
+.vdc-about__title { font: 700 var(--vdc-size-h1)/1.1 var(--vdc-font-display); letter-spacing: -.02em; color: #fff; margin-top: var(--vdc-space-3); max-width: 20ch; }
+.vdc-about__title-accent { display: block; color: var(--vdc-gold-500); }
+.vdc-about__lead { margin-top: var(--vdc-space-4); max-width: 56ch; font: 400 var(--vdc-size-body)/1.7 var(--vdc-font-body); color: var(--vdc-navy-100); }
+
+.vdc-about__stats { background: var(--vdc-gold-gradient); }
+/* auto-fit: o número de itens vem do admin (uma linha por número), então
+   a faixa não pode assumir exatamente 4. */
+.vdc-about__stats-inner { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: var(--vdc-space-5); padding-block: var(--vdc-space-6); text-align: center; }
+.vdc-about__stat strong { display: block; font: 700 32px var(--vdc-font-data); color: var(--vdc-navy-900); }
+.vdc-about__stat span { display: block; margin-top: 4px; font: 500 13px var(--vdc-font-body); color: var(--vdc-navy-700); }
+@media (max-width: 760px) {
+  .vdc-about__stats-inner { grid-template-columns: repeat(2, 1fr); gap: var(--vdc-space-6); }
+  /* O "valor" pode ser texto ("Vitória da Conquista"), não só número —
+     a 32px isso quebrava em três linhas na coluna estreita. */
+  .vdc-about__stat strong { font-size: 22px; }
+}
+
+.vdc-about__story { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--vdc-space-8); align-items: center; }
+/* Sem foto da história (campo opcional no admin), a segunda coluna
+   ficaria vazia e o texto espremido em metade da largura. */
+.vdc-about__story--solo { grid-template-columns: minmax(0, 1fr); }
+.vdc-about__story--solo .vdc-about__story-text { max-width: 68ch; }
+.vdc-about__story-p { margin-top: var(--vdc-space-4); }
+.vdc-about__story-actions { display: flex; gap: var(--vdc-space-3); flex-wrap: wrap; margin-top: var(--vdc-space-6); }
+.vdc-about__story-media { position: relative; }
+.vdc-about__story-media img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: var(--vdc-radius-sm); }
+/* Selo flutuante sobre a foto (ex.: ano de fundação), como no modelo. */
+.vdc-about__badge {
+  position: absolute; left: calc(-1 * var(--vdc-space-4)); bottom: var(--vdc-space-5);
+  padding: var(--vdc-space-4) var(--vdc-space-5); border-radius: var(--vdc-radius-sm);
+  background: var(--vdc-navy-gradient); box-shadow: var(--vdc-shadow-md);
+}
+.vdc-about__badge strong { display: block; font: 700 26px var(--vdc-font-data); color: #fff; }
+.vdc-about__badge span { display: block; margin-top: 2px; font: 500 12px var(--vdc-font-body); color: var(--vdc-navy-100); }
+@media (max-width: 900px) {
+  .vdc-about__story { grid-template-columns: 1fr; gap: var(--vdc-space-6); }
+  .vdc-about__badge { left: var(--vdc-space-4); }
+}
+
+.vdc-about__principles { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--vdc-space-5); align-items: start; }
+.vdc-about__principle {
+  background: #fff; border: 1px solid var(--vdc-gray-400); border-radius: var(--vdc-radius-sm);
+  padding: var(--vdc-space-6); box-shadow: var(--vdc-shadow-sm);
+}
+.vdc-about__principle-icon {
+  display: grid; place-items: center; width: 44px; height: 44px; border-radius: var(--vdc-radius-sm);
+  background: var(--vdc-navy-100); color: var(--vdc-navy-700);
+}
+.vdc-about__principle-title { font: 600 var(--vdc-size-h4)/1.25 var(--vdc-font-display); color: var(--vdc-navy-700); margin: var(--vdc-space-4) 0 var(--vdc-space-3); }
+.vdc-about__values { display: grid; gap: 10px; }
+.vdc-about__values li { display: flex; align-items: center; gap: 8px; font: 400 15px var(--vdc-font-body); color: var(--vdc-gray-600); }
+.vdc-about__values svg { color: var(--vdc-gold-700); flex-shrink: 0; }
+@media (max-width: 900px) { .vdc-about__principles { grid-template-columns: 1fr; } }
+
+/* =========================================================
+   14. Página do imóvel (/imovel/<id>) — ficha completa, endereço
+   e mapa Leaflet/OpenStreetMap com a coordenada já gravada no banco.
+   ========================================================= */
+
+/* Card virou porta de entrada da ficha: capa e título passaram a ser
+   links. O <a> da capa é quem ganha o inset:0 (a foto e a ilustração
+   já se posicionam absolutas dentro dele), e fica em z-index 0 pra
+   passar por baixo do selo "À VENDA" e do botão de favoritar, que
+   estão em z-index 1 e precisam continuar clicáveis. */
+.vdc-property__cover-link { position: absolute; inset: 0; z-index: 0; display: block; }
+.vdc-property__cover-link:focus-visible { outline: 2px solid var(--vdc-gold-500); outline-offset: -4px; }
+.vdc-property__title-link { color: inherit; text-decoration: none; }
+.vdc-property__title-link:hover { color: var(--vdc-gold-700); }
+.vdc-property__title-link:focus-visible { outline: 2px solid var(--vdc-gold-500); outline-offset: 3px; }
+
+.vdc-detail__crumbs {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+  font: 500 13px var(--vdc-font-body); color: var(--vdc-gray-600); margin-bottom: var(--vdc-space-5);
+}
+.vdc-detail__crumbs a { color: var(--vdc-navy-700); text-decoration: none; }
+.vdc-detail__crumbs a:hover { color: var(--vdc-gold-700); text-decoration: underline; }
+
+/* Coluna da direita é fixa em 340px: é uma caixa de preço + CTA, não
+   ganha nada em ficar elástica, e a coluna de conteúdo fica com toda
+   a sobra pra linha de texto não passar do confortável. */
+.vdc-detail__grid { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: var(--vdc-space-7); align-items: start; }
+.vdc-detail__main { min-width: 0; }
+
+/* =========================================================
+   14.1 Galeria da ficha do imóvel — foto principal + tira de
+   miniaturas (property-gallery.js) e o lightbox em tela cheia.
+   ========================================================= */
+.vdc-gallery__main {
+  position: relative; aspect-ratio: 16 / 10; border-radius: var(--vdc-radius-sm); overflow: hidden;
+  display: flex; align-items: flex-start; padding: var(--vdc-space-4); box-shadow: var(--vdc-shadow-sm);
+}
+.vdc-gallery__main-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+/* tabindex="0" no HTML: é um gatilho real (abre o lightbox), então
+   precisa do mesmo anel de foco que qualquer botão do site. */
+.vdc-gallery__main-img:focus-visible { outline: 3px solid var(--vdc-gold-500); outline-offset: -3px; }
+.vdc-detail__cover-chip { position: relative; z-index: 1; }
+
+/* Setas de navegação sobre a foto grande — mesmo botão circular
+   translúcido usado no coração de favoritos do card (.vdc-property__fav),
+   reaproveitando a linguagem visual em vez de inventar um novo estilo. */
+.vdc-gallery__nav {
+  position: absolute; top: 50%; transform: translateY(-50%); z-index: 1;
+  width: 40px; height: 40px; border-radius: 50%; border: 0; cursor: pointer;
+  display: grid; place-items: center; background: rgba(21,43,67,.55); color: #fff;
+  transition: background var(--vdc-dur-fast) var(--vdc-ease), transform var(--vdc-dur-fast) var(--vdc-ease);
+}
+.vdc-gallery__nav:hover { background: rgba(21,43,67,.8); }
+.vdc-gallery__nav:focus-visible { outline: 2px solid var(--vdc-gold-500); outline-offset: 2px; }
+.vdc-gallery__nav--prev { left: var(--vdc-space-3); }
+.vdc-gallery__nav--next { right: var(--vdc-space-3); }
+
+.vdc-gallery__counter {
+  position: absolute; bottom: var(--vdc-space-3); left: 50%; transform: translateX(-50%); z-index: 1;
+  padding: 5px 12px; border-radius: var(--vdc-radius-full); background: rgba(21,43,67,.6); color: #fff;
+  font: 600 12px var(--vdc-font-data);
+}
+
+.vdc-gallery__expand {
+  position: absolute; bottom: var(--vdc-space-3); right: var(--vdc-space-3); z-index: 1;
+  display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 var(--vdc-space-3);
+  border: 0; border-radius: var(--vdc-radius-full); cursor: pointer;
+  background: rgba(21,43,67,.6); color: #fff; font: 600 12px var(--vdc-font-display);
+  transition: background var(--vdc-dur-fast) var(--vdc-ease);
+}
+.vdc-gallery__expand:hover { background: rgba(21,43,67,.85); }
+.vdc-gallery__expand:focus-visible { outline: 2px solid var(--vdc-gold-500); outline-offset: 2px; }
+
+/* Tira de miniaturas — até 4 fotos reais + 1 ladrilho "+N fotos"
+   quando sobra mais (ver imovel.html: só renderiza prop.photos[1:5]).
+   5 colunas fixas: é sempre esse tanto de ladrilhos, então uma grade
+   fluida (auto-fit) não ganharia nada e só complicaria o cálculo de
+   largura. */
+.vdc-gallery__thumbs {
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: var(--vdc-space-2);
+  margin-top: var(--vdc-space-2);
+}
+.vdc-gallery__thumb {
+  position: relative; aspect-ratio: 4 / 3; border-radius: var(--vdc-radius-sm); overflow: hidden;
+  border: 2px solid transparent; padding: 0; cursor: pointer; background: var(--vdc-off-white);
+  transition: border-color var(--vdc-dur-fast) var(--vdc-ease), opacity var(--vdc-dur-fast) var(--vdc-ease);
+}
+.vdc-gallery__thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.vdc-gallery__thumb:hover { opacity: .85; }
+.vdc-gallery__thumb:focus-visible { outline: 2px solid var(--vdc-gold-500); outline-offset: 1px; }
+.vdc-gallery__thumb.is-active { border-color: var(--vdc-gold-500); }
+.vdc-gallery__thumb--more { display: block; }
+.vdc-gallery__thumb--more::after {
+  content: ""; position: absolute; inset: 0; background: rgba(21,43,67,.6);
+}
+.vdc-gallery__thumb--more span {
+  position: absolute; inset: 0; z-index: 1; display: grid; place-items: center;
+  color: #fff; font: 700 13px var(--vdc-font-display); text-align: center; padding: 4px;
+}
+
+/* Sem fotos: cai no mesmo ícone de linha por tipo de imóvel que os
+   cards já usam quando não há foto cadastrada (property_cover_icon). */
+.vdc-gallery--empty .vdc-gallery__main { background: var(--vdc-off-white); }
+
+/* --- Lightbox (tela cheia) --- */
+.vdc-no-scroll { overflow: hidden; }
+
+.vdc-lightbox {
+  position: fixed; inset: 0; z-index: var(--vdc-z-toast);
+  display: flex; align-items: center; justify-content: center;
+}
+.vdc-lightbox__backdrop { position: absolute; inset: 0; background: rgba(10,17,28,.94); }
+.vdc-lightbox__figure {
+  position: relative; z-index: 1; margin: 0; max-width: min(94vw, 1400px); max-height: 90vh;
+  display: flex; flex-direction: column; align-items: center; gap: var(--vdc-space-3);
+}
+.vdc-lightbox__img { max-width: 94vw; max-height: 82vh; object-fit: contain; border-radius: var(--vdc-radius-sm); }
+.vdc-lightbox__counter { color: var(--vdc-navy-300); font: 600 13px var(--vdc-font-data); }
+
+.vdc-lightbox__close {
+  position: absolute; top: var(--vdc-space-5); right: var(--vdc-space-5); z-index: 2;
+  width: 44px; height: 44px; border-radius: 50%; border: 0; cursor: pointer;
+  display: grid; place-items: center; background: rgba(255,255,255,.1); color: #fff;
+  transition: background var(--vdc-dur-fast) var(--vdc-ease);
+}
+.vdc-lightbox__close:hover { background: rgba(255,255,255,.2); }
+.vdc-lightbox__close:focus-visible { outline: 2px solid var(--vdc-gold-500); outline-offset: 2px; }
+
+.vdc-lightbox__nav {
+  position: absolute; top: 50%; transform: translateY(-50%); z-index: 2;
+  width: 52px; height: 52px; border-radius: 50%; border: 0; cursor: pointer;
+  display: grid; place-items: center; background: rgba(255,255,255,.1); color: #fff;
+  transition: background var(--vdc-dur-fast) var(--vdc-ease);
+}
+.vdc-lightbox__nav:hover { background: rgba(255,255,255,.2); }
+.vdc-lightbox__nav:focus-visible { outline: 2px solid var(--vdc-gold-500); outline-offset: 2px; }
+.vdc-lightbox__nav--prev { left: var(--vdc-space-5); }
+.vdc-lightbox__nav--next { right: var(--vdc-space-5); }
+
+
+.vdc-detail__tags { margin-top: var(--vdc-space-5); }
+.vdc-detail__title { margin-top: var(--vdc-space-3); }
+.vdc-detail__location {
+  display: flex; align-items: center; gap: 6px; margin-top: var(--vdc-space-3);
+  font: 500 15px var(--vdc-font-body); color: var(--vdc-gray-600);
+}
+.vdc-detail__location svg { flex-shrink: 0; color: var(--vdc-gold-500); }
+
+/* auto-fit em vez de 4 colunas fixas: com "Tipo" às vezes longo
+   ("Casa em Condomínio"), coluna fixa espremia o texto em 3 linhas. */
+.vdc-detail__specs {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: var(--vdc-space-3);
+  margin-top: var(--vdc-space-6);
+}
+.vdc-detail__spec {
+  background: var(--vdc-off-white); border: 1px solid var(--vdc-gray-400);
+  border-radius: var(--vdc-radius-sm); padding: var(--vdc-space-4);
+}
+.vdc-detail__spec dt {
+  font: 700 11px var(--vdc-font-display); letter-spacing: .12em; text-transform: uppercase;
+  color: var(--vdc-navy-500);
+}
+.vdc-detail__spec dd { margin: 6px 0 0; font: 500 16px var(--vdc-font-data); color: var(--vdc-navy-700); }
+
+.vdc-detail__block { margin-top: var(--vdc-space-8); }
+.vdc-detail__block-title { margin-bottom: var(--vdc-space-4); }
+.vdc-detail__text p { font: 400 16px/1.7 var(--vdc-font-body); color: var(--vdc-gray-600); margin-bottom: var(--vdc-space-4); }
+.vdc-detail__text p:last-child { margin-bottom: 0; }
+.vdc-detail__address { font: 500 15px/1.6 var(--vdc-font-body); color: var(--vdc-navy-700); margin-bottom: var(--vdc-space-3); }
+
+/* Caixa de preço grudada no topo enquanto a ficha rola. 104px = 80px
+   do cabeçalho fixo + respiro. Vira estática no empilhamento mobile,
+   onde "sticky" só atrapalharia. */
+.vdc-detail__aside { position: sticky; top: 104px; display: grid; gap: var(--vdc-space-4); }
+/* min-width:0 em TODO filho direto — aside é display:grid, então
+   pricebox e o link "← Ver todos" são itens de grid, cada um com um
+   mínimo automático baseado no próprio conteúdo (achado testando
+   ~320-340px: o botão "Falar com um consultor", sendo inline-flex com
+   texto + ícone, tinha um mínimo maior que a coluna, e isso vazava
+   pricebox → aside → toda a faixa 1fr compartilhada com
+   .vdc-detail__main no layout empilhado). Aplicado sempre, não só no
+   layout empilhado — não muda nada onde já cabia, e evita o mesmo
+   problema reaparecer se a caixa ganhar mais um item algum dia. */
+.vdc-detail__aside > * { min-width: 0; }
+.vdc-detail__pricebox {
+  background: #fff; border: 1px solid var(--vdc-gray-400); border-radius: var(--vdc-radius-sm);
+  box-shadow: var(--vdc-shadow-md); padding: var(--vdc-space-6);
+}
+.vdc-detail__price { display: block; margin-top: var(--vdc-space-2); font: 700 28px var(--vdc-font-data); color: var(--vdc-navy-700); }
+.vdc-detail__price-note { color: var(--vdc-gray-600); margin-top: 6px; }
+.vdc-detail__cta { width: 100%; margin-top: var(--vdc-space-4); text-align: center; }
+.vdc-detail__aside-note { color: var(--vdc-gray-600); margin-top: var(--vdc-space-4); line-height: 1.55; }
+.vdc-detail__back { display: inline-block; font: 600 14px var(--vdc-font-display); color: var(--vdc-navy-700); text-decoration: none; }
+.vdc-detail__back:hover { color: var(--vdc-gold-700); }
+
+.vdc-detail__related { margin-top: var(--vdc-space-9); }
+
+/* --- Mapa da ficha --- */
+
+/* Frase de precisão vem ANTES do mapa de propósito: quem lê a página
+   descobre que o ponto pode ser aproximado antes de olhar o pin, não
+   depois. */
+.vdc-propmap__precision {
+  display: flex; align-items: flex-start; gap: 7px; margin-bottom: var(--vdc-space-3);
+  font: 500 13px/1.5 var(--vdc-font-body); color: var(--vdc-gray-600);
+}
+.vdc-propmap__precision svg { flex-shrink: 0; margin-top: 2px; color: var(--vdc-gold-700); }
+
+/* z-index:0 + position:relative isolam o mapa num contexto de
+   empilhamento próprio: os controles do Leaflet vão até z-index 800 e,
+   soltos, passariam por cima do cabeçalho fixo (z-index 100). */
+.vdc-propmap {
+  position: relative; z-index: 0; height: 400px;
+  border: 1px solid var(--vdc-gray-400); border-radius: var(--vdc-radius-sm); overflow: hidden;
+  box-shadow: var(--vdc-shadow-sm); background: var(--vdc-off-white);
+}
+.vdc-propmap__note { margin-top: var(--vdc-space-3); font: 400 12px/1.6 var(--vdc-font-body); color: var(--vdc-gray-600); }
+.vdc-propmap__note a { color: var(--vdc-navy-700); }
+
+/* Pin da ficha: gota navy com miolo dourado. Diferente do pin da
+   busca (que é uma pílula com o preço) porque aqui só existe um
+   imóvel — não há preço pra comparar, o marcador só localiza. */
+.vdc-propmap__pin {
+  display: block; width: 26px; height: 26px; border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg); background: var(--vdc-navy-gradient);
+  border: 2px solid #fff; box-shadow: var(--vdc-shadow-md);
+}
+.vdc-propmap__pin::after {
+  content: ""; position: absolute; top: 50%; left: 50%; width: 8px; height: 8px; border-radius: 50%;
+  background: var(--vdc-gold-500); transform: translate(-50%, -50%);
+}
+
+@media (max-width: 980px) {
+  .vdc-detail__grid { grid-template-columns: 1fr; gap: var(--vdc-space-6); }
+  /* Empilhado, a caixa de preço vai pra cima da ficha: é a informação
+     que a pessoa procura primeiro no celular. min-width:0: empilhada,
+     aside divide a mesma faixa 1fr que .vdc-detail__main — sem isso o
+     conteúdo interno dela (CTA com texto comprido, sem quebra) força
+     essa faixa compartilhada mais larga que a tela toda em ~320-340px,
+     e .vdc-detail__main (que só herda o tamanho da faixa) vaza junto. */
+  .vdc-detail__aside { position: static; order: -1; min-width: 0; }
+  /* Mesma folga da linha de cima, agora pra galeria: empilhada, ela
+     também se aproxima da largura toda da tela e a última miniatura
+     da fileira ficava embaixo do círculo do Instagram. */
+  .vdc-gallery { margin-right: var(--vdc-space-8); }
+  /* Mesma folga que .vdc-properties reserva: empilhada, a caixa ocupa
+     quase toda a largura e seus CTAs de largura total passariam por
+     baixo dos botões flutuantes de WhatsApp/Instagram (fixos à
+     direita). Medido: sem isso sobra 1px de folga em 768px. */
+  .vdc-detail__pricebox { margin-right: var(--vdc-space-7); }
+}
+
+@media (max-width: 640px) {
+  .vdc-gallery__main { aspect-ratio: 4 / 3; }
+  /* Mesma folga contra os botões flutuantes de WhatsApp/Instagram que
+     .vdc-detail__pricebox já reserva ali em cima — sem isso a última
+     miniatura da fileira ficava embaixo do círculo do Instagram. */
+  .vdc-gallery__thumbs { grid-template-columns: repeat(4, 1fr); }
+  .vdc-gallery__nav { width: 34px; height: 34px; }
+  .vdc-gallery__expand-label { display: none; }
+  .vdc-lightbox__nav { width: 40px; height: 40px; }
+  .vdc-lightbox__nav--prev { left: var(--vdc-space-2); }
+  .vdc-lightbox__nav--next { right: var(--vdc-space-2); }
+  .vdc-lightbox__close { top: var(--vdc-space-3); right: var(--vdc-space-3); }
+  .vdc-propmap { height: 300px; }
+  .vdc-detail__price { font-size: 24px; }
+}

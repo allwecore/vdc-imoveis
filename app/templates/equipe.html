@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Nossa equipe | VDC Imóveis{% endblock %}
+
+{% block content %}
+{% include "partials/header.html" %}
+
+<section class="vdc-section">
+  <div class="vdc-container">
+    <div class="vdc-section-head vdc-section-head--center">
+      <span class="vdc-eyebrow">Quem está na mesa</span>
+      <h1 class="vdc-h2">Nossa equipe</h1>
+      <p class="vdc-body vdc-teampage__lead">As pessoas que assinam cada laudo, contrato e negociação da VDC. Cada uma com registro profissional no próprio conselho.</p>
+    </div>
+
+    {% if members %}
+    <div class="vdc-teampage">
+      {% for member in members %}
+      <article class="vdc-teampage__card">
+        <div class="vdc-teampage__media">
+          {% if member.photo_path %}
+          <img class="vdc-teampage__photo" src="{{ url_for('static', filename=member.photo_path) }}" alt="{{ member.name }}">
+          {% else %}
+          <div class="vdc-team__avatar{% if member.placeholder %} vdc-team__avatar--placeholder{% endif %} vdc-teampage__avatar">{{ member.initials }}</div>
+          {% endif %}
+        </div>
+        <div class="vdc-teampage__body">
+          <h2 class="vdc-teampage__name">{{ member.name }}</h2>
+          <span class="vdc-eyebrow vdc-team__role">{{ member.role }}</span>
+          {% if member.credential %}<span class="vdc-caption vdc-team__credential">{{ member.credential }}</span>{% endif %}
+          {% if member.placeholder %}<span class="vdc-team__tag">Vaga em preenchimento</span>{% endif %}
+
+          {% if member.bio_paragraphs %}
+          <div class="vdc-teampage__bio">
+            {% for paragraph in member.bio_paragraphs %}
+            <p>{{ paragraph }}</p>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="vdc-body" style="text-align:center;">Equipe em atualização.</p>
+    {% endif %}
+
+    <div class="vdc-teampage__cta">
+      <div>
+        <span class="vdc-eyebrow" style="color: var(--vdc-gold-500);">Fale com quem decide junto</span>
+        <p class="vdc-teampage__cta-title">Traga seu caso para a mesa</p>
+        <p class="vdc-body vdc-teampage__cta-text">Consultoria, engenharia, arquitetura e jurídico avaliam a mesma negociação, juntos.</p>
+      </div>
+      <a href="{{ url_for('index') }}#contato" class="vdc-btn vdc-btn--gold">
+        Falar com um consultor
+        <svg class="vdc-icon-arrow" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+{% include "partials/footer.html" %}
+{% endblock %}

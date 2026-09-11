@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VDC Imóveis — Sistema de Identidade Visual</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Lato:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy-900:#152B43; --navy-700:#283B62; --navy-500:#5272B2; --navy-300:#8FA3C8; --navy-100:#E7ECF5;
+  --gold-300:#F2D376; --gold-500:#C9A44E; --gold-700:#8F7534;
+  --sand-400:#CBB492; --sand-100:#F5EFE6;
+  --white:#fff; --off:#F7F8FA; --gray-400:#C9CED8; --gray-600:#616E89; --ink:#1A1F2B;
+  --wa:#25D366;
+  --metal:linear-gradient(135deg,#8F7534 0%,#C9A44E 35%,#F2D376 55%,#C9A44E 78%,#8F7534 100%);
+  --f-d:"Archivo","Arial Black",Arial,sans-serif;
+  --f-b:"Lato","Segoe UI",Arial,sans-serif;
+  --f-m:"IBM Plex Mono",Consolas,monospace;
+  --sh-sm:0 1px 2px rgba(21,43,67,.08); --sh-md:0 4px 16px rgba(21,43,67,.10); --sh-lg:0 16px 48px rgba(21,43,67,.14);
+  --ease:cubic-bezier(.2,.8,.2,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--f-b);color:var(--ink);background:var(--white);-webkit-font-smoothing:antialiased;line-height:1.65}
+.wrap{max-width:1200px;margin-inline:auto;padding-inline:24px}
+@media(min-width:1024px){.wrap{padding-inline:80px}}
+
+/* ---------- tipos utilitários ---------- */
+.eyebrow{font:600 13px/1.2 var(--f-d);letter-spacing:.14em;text-transform:uppercase;color:var(--gold-500)}
+h1,h2,h3,h4{font-family:var(--f-d);color:var(--navy-700);line-height:1.15}
+h2{font-size:39px;font-weight:700;letter-spacing:-.01em}
+h3{font-size:25px;font-weight:600}
+p{color:var(--gray-600);max-width:68ch}
+.mono{font-family:var(--f-m);font-weight:500;letter-spacing:.02em}
+.rule::after{content:"";display:block;width:64px;height:2px;background:var(--gold-500);margin-top:16px}
+
+/* ---------- topo ---------- */
+header.hero{position:relative;background:var(--navy-900);color:#fff;overflow:hidden;padding:96px 0 80px}
+header.hero .arc{position:absolute;right:-160px;top:-120px;width:620px;height:620px;border-radius:50%;
+  border:56px solid rgba(201,164,78,.10);border-right-color:rgba(201,164,78,.22);border-top-color:transparent}
+header.hero .wrap{position:relative;z-index:1}
+header.hero h1{color:#fff;font-size:61px;font-weight:700;letter-spacing:-.02em;line-height:1.02;text-transform:uppercase;max-width:14ch}
+header.hero p{color:var(--navy-100);font-size:19px;margin-top:24px;max-width:52ch}
+.meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:32px}
+.meta span{font:500 12px/1 var(--f-m);letter-spacing:.1em;text-transform:uppercase;color:var(--gold-500);
+  border:1px solid rgba(201,164,78,.45);padding:8px 12px;border-radius:4px}
+@media(max-width:768px){header.hero h1{font-size:40px}}
+
+/* ---------- nav ---------- */
+nav.toc{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.94);backdrop-filter:blur(6px);
+  border-bottom:1px solid var(--gray-400)}
+nav.toc ul{display:flex;gap:4px;list-style:none;overflow-x:auto;padding:0;max-width:1200px;margin-inline:auto}
+nav.toc a{display:block;padding:16px 14px;white-space:nowrap;text-decoration:none;color:var(--navy-700);
+  font:600 12px/1 var(--f-d);letter-spacing:.1em;text-transform:uppercase;border-bottom:2px solid transparent}
+nav.toc a:hover{border-bottom-color:var(--gold-500)}
+
+section{padding:96px 0;border-bottom:1px solid var(--gray-400)}
+section.alt{background:var(--off)}
+.sec-head{margin-bottom:48px}
+.sec-head p{margin-top:16px}
+
+/* ---------- cores ---------- */
+.swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px;margin-top:24px}
+.sw{border:1px solid var(--gray-400);border-radius:4px;overflow:hidden;cursor:pointer;background:#fff;
+  transition:box-shadow .16s var(--ease),transform .16s var(--ease),border-color .16s var(--ease);text-align:left}
+.sw:hover{box-shadow:var(--sh-md);transform:translateY(-2px);border-color:var(--gold-500)}
+.sw:focus-visible{outline:2px solid var(--gold-500);outline-offset:2px}
+.sw .chip{height:88px}
+.sw .info{padding:12px 14px}
+.sw b{display:block;font:600 13px/1.3 var(--f-d);color:var(--navy-700)}
+.sw code{font:500 12px var(--f-m);color:var(--gray-600)}
+.sw small{display:block;margin-top:6px;font-size:12px;color:var(--gray-600);line-height:1.4}
+.ratio{display:grid;grid-template-columns:60fr 30fr 10fr;height:56px;margin-top:32px;border-radius:4px;overflow:hidden;border:1px solid var(--gray-400)}
+.ratio div{display:grid;place-items:center;font:500 11px var(--f-m);letter-spacing:.1em}
+
+/* ---------- tabela ---------- */
+table{width:100%;border-collapse:collapse;margin-top:24px;font-size:14px}
+th,td{text-align:left;padding:12px 16px;border-bottom:1px solid var(--gray-400)}
+th{font:600 12px var(--f-d);letter-spacing:.1em;text-transform:uppercase;color:var(--navy-700);background:var(--navy-100)}
+td{color:var(--gray-600)}
+.pass{color:#1F7A4C;font-weight:700}.warn{color:#8F7534;font-weight:700}.fail{color:#B4472E;font-weight:700}
+
+/* ---------- tipografia ---------- */
+.type-row{display:grid;grid-template-columns:120px 1fr;gap:24px;align-items:baseline;padding:20px 0;border-bottom:1px solid var(--gray-400)}
+.type-row .lbl{font:500 11px var(--f-m);letter-spacing:.1em;text-transform:uppercase;color:var(--gray-600)}
+.t-display{font:700 61px/1.02 var(--f-d);letter-spacing:-.02em;color:var(--navy-700)}
+.t-h2{font:700 39px/1.15 var(--f-d);letter-spacing:-.01em;color:var(--navy-700)}
+.t-h3{font:600 31px/1.2 var(--f-d);color:var(--navy-700)}
+.t-lead{font:400 19px/1.6 var(--f-b);color:var(--gray-600)}
+.t-body{font:400 16px/1.65 var(--f-b);color:var(--gray-600)}
+.t-data{font:500 31px/1.2 var(--f-m);letter-spacing:.02em;color:var(--navy-700)}
+@media(max-width:768px){.t-display{font-size:40px}.t-h2{font-size:28px}.type-row{grid-template-columns:1fr;gap:8px}}
+
+/* ---------- componentes ---------- */
+.grid-3{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:24px}
+.btn{display:inline-flex;align-items:center;justify-content:center;height:48px;padding:0 32px;border:0;cursor:pointer;
+  border-radius:4px;font:600 15px/1 var(--f-d);letter-spacing:.06em;text-transform:uppercase;text-decoration:none;
+  transition:transform .16s var(--ease),filter .16s var(--ease)}
+.btn:hover{transform:translateY(-1px);filter:brightness(.92)}
+.btn:focus-visible{outline:2px solid var(--gold-500);outline-offset:2px}
+.b-p{background:var(--navy-700);color:#fff}
+.b-s{background:transparent;color:var(--navy-700);box-shadow:inset 0 0 0 1.5px var(--navy-700)}
+.b-g{background:var(--gold-500);color:var(--navy-900)}
+.b-w{background:var(--wa);color:#fff}
+.btns{display:flex;flex-wrap:wrap;gap:16px;align-items:center;margin-top:24px}
+
+.card{background:#fff;border:1px solid var(--gray-400);border-radius:4px;box-shadow:var(--sh-sm);overflow:hidden;
+  transition:box-shadow .16s var(--ease),border-color .16s var(--ease),transform .16s var(--ease)}
+.card:hover{box-shadow:var(--sh-md);border-color:var(--gold-500);transform:translateY(-2px)}
+.card .ph{position:relative;aspect-ratio:4/3;background:linear-gradient(160deg,#33507f,#152B43);display:grid;place-items:center}
+.card .ph::after{content:"FOTO 4:3";font:500 11px var(--f-m);letter-spacing:.14em;color:rgba(255,255,255,.5)}
+.chip{position:absolute;top:12px;left:12px;background:var(--navy-700);color:#fff;padding:6px 12px;border-radius:4px;
+  font:600 12px/1 var(--f-d);letter-spacing:.1em;text-transform:uppercase;z-index:2}
+.card .bd{padding:24px}
+.card .bd h4{font:600 25px/1.25 var(--f-d);color:var(--navy-700);margin-top:6px}
+.card .gold-rule{width:40px;height:2px;background:var(--gold-500);margin:16px 0}
+.card .price{font:500 25px/1.2 var(--f-m);letter-spacing:.02em;color:var(--navy-700)}
+.card .specs{font:400 14px var(--f-b);color:var(--gray-600);margin-top:8px}
+.card .btn{width:100%;margin-top:24px}
+
+.seals{display:flex;flex-wrap:wrap;gap:24px;margin-top:24px}
+.seal{display:grid;place-items:center;width:110px;height:110px;text-align:center;border-radius:50%;
+  background:var(--navy-900);box-shadow:inset 0 0 0 1.5px var(--gold-500);color:#fff;
+  font:500 11px/1.35 var(--f-m);letter-spacing:.06em;text-transform:uppercase;padding:14px}
+
+.field{max-width:420px;margin-top:24px}
+.field label{display:block;font:600 12px var(--f-d);letter-spacing:.1em;text-transform:uppercase;color:var(--navy-700);margin-bottom:8px}
+.field input{width:100%;height:48px;padding:0 16px;border:1px solid var(--gray-400);border-radius:4px;
+  font:400 16px var(--f-b);color:var(--ink);background:#fff}
+.field input:focus{outline:none;border-color:var(--navy-500);box-shadow:0 0 0 2px var(--gold-500)}
+
+.team{display:flex;gap:20px;align-items:center;margin-top:24px;flex-wrap:wrap}
+.team .av{width:88px;height:88px;border-radius:50%;background:var(--navy-100);box-shadow:inset 0 0 0 1.5px var(--gold-500);
+  display:grid;place-items:center;font:600 24px var(--f-d);color:var(--navy-700)}
+
+/* ---------- post mock ---------- */
+.posts{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:32px;margin-top:32px}
+.post{width:100%;aspect-ratio:4/5;position:relative;overflow:hidden;border:1px solid var(--gray-400);border-radius:4px;
+  display:flex;flex-direction:column;justify-content:flex-end}
+.post .photo{position:absolute;inset:0;background:linear-gradient(150deg,#4a6da3,#1d3454 60%,#152B43)}
+.post .veil{position:absolute;inset:0;background:linear-gradient(180deg,rgba(21,43,67,0) 30%,rgba(21,43,67,.9) 85%)}
+.post .arcw{position:absolute;right:-70px;top:-70px;width:260px;height:260px;border-radius:50%;
+  border:26px solid rgba(255,255,255,.06);border-right-color:rgba(201,164,78,.14)}
+.post .content{position:relative;padding:26px;color:#fff}
+.post .tag{display:inline-block;background:var(--navy-700);border-bottom:4px solid var(--gold-500);
+  padding:8px 14px 6px;border-radius:4px 4px 0 0;font:500 20px var(--f-m);color:#fff;margin-bottom:14px}
+.post h5{font:700 30px/1.05 var(--f-d);letter-spacing:-.02em;text-transform:uppercase;color:#fff}
+.post .kv{font:500 12px var(--f-m);letter-spacing:.06em;color:var(--gold-300);margin-top:10px}
+.post .bar{position:relative;margin-top:20px;padding-top:14px;border-top:1px solid rgba(255,255,255,.2);
+  display:flex;justify-content:space-between;align-items:center;font:500 11px var(--f-m);letter-spacing:.1em;color:rgba(255,255,255,.75)}
+.post--navy .photo{background:var(--navy-700)}
+.post--navy .veil{background:none}
+.post--navy{justify-content:flex-start}
+.post--navy .content{padding-top:34px}
+.post--navy .num{font:500 12px var(--f-m);color:var(--gold-500);letter-spacing:.14em}
+.post--navy li{list-style:none;margin-top:16px;font:400 14px/1.5 var(--f-b);color:#E7ECF5}
+.post--navy li b{display:block;font:600 15px var(--f-d);color:#fff;text-transform:uppercase;letter-spacing:.02em}
+
+/* ---------- do / dont ---------- */
+.dd{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px;margin-top:24px}
+.dd>div{border:1px solid var(--gray-400);border-radius:4px;padding:24px;background:#fff}
+.dd h4{font:600 14px var(--f-d);letter-spacing:.1em;text-transform:uppercase;margin-bottom:16px}
+.dd ul{margin-left:18px;font-size:14px;color:var(--gray-600)}
+.dd li{margin-bottom:10px}
+.dd .ok h4{color:#1F7A4C}.dd .no h4{color:#B4472E}
+
+/* ---------- rodapé ---------- */
+footer{background:var(--navy-900);color:var(--navy-100);padding:64px 0;font-size:14px}
+footer .mark{font:700 32px var(--f-d);letter-spacing:.02em;color:#fff}
+footer .g{color:var(--gold-500)}
+footer .cred{font:500 12px var(--f-m);letter-spacing:.1em;color:var(--gold-500);margin-top:12px}
+
+.toast{position:fixed;left:50%;bottom:32px;transform:translate(-50%,80px);background:var(--navy-900);color:#fff;
+  padding:14px 22px;border-radius:4px;box-shadow:var(--sh-lg);font:500 13px var(--f-m);letter-spacing:.06em;
+  opacity:0;transition:all .25s var(--ease);z-index:99;border-bottom:2px solid var(--gold-500)}
+.toast.on{transform:translate(-50%,0);opacity:1}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="arc" aria-hidden="true"></div>
+  <div class="wrap">
+    <p class="eyebrow">Sistema de identidade visual · v1.0</p>
+    <h1>VDC Imóveis</h1>
+    <p>Consultoria, engenharia e jurídico na mesma mesa. Este é o documento vivo da marca: paleta, tipografia e componentes prontos para aplicar em posts, site e materiais gerados por IA.</p>
+    <div class="meta">
+      <span>Vitória da Conquista · BA</span>
+      <span>CRECI 35889</span>
+      <span>Agosto 2026</span>
+    </div>
+  </div>
+</header>
+
+<nav class="toc"><ul>
+  <li><a href="#cor">Cor</a></li>
+  <li><a href="#tipo">Tipografia</a></li>
+  <li><a href="#forma">Forma e espaço</a></li>
+  <li><a href="#comp">Componentes</a></li>
+  <li><a href="#social">Redes sociais</a></li>
+  <li><a href="#regras">Regras</a></li>
+</ul></nav>
+
+<!-- COR -->
+<section id="cor">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">01 — Cor</p>
+      <h2 class="rule">Duas cores de marca, nada além</h2>
+      <p>Todos os valores foram amostrados diretamente do logotipo e do site atual. Clique em qualquer amostra para copiar o hex.</p>
+    </div>
+
+    <h3>Navy — a cor da VDC</h3>
+    <div class="swatches" id="sw-navy"></div>
+
+    <h3 style="margin-top:48px">Dourado e areia — no máximo 10% da peça</h3>
+    <div class="swatches" id="sw-gold"></div>
+
+    <h3 style="margin-top:48px">Neutros e funcionais</h3>
+    <div class="swatches" id="sw-neutral"></div>
+
+    <h3 style="margin-top:48px">Proporção 60 / 30 / 10</h3>
+    <div class="ratio">
+      <div style="background:var(--off);color:var(--gray-600)">60% NEUTRO</div>
+      <div style="background:var(--navy-700);color:#fff">30% NAVY</div>
+      <div style="background:var(--gold-500);color:var(--navy-900)">10%</div>
+    </div>
+
+    <h3 style="margin-top:48px">Contraste verificado</h3>
+    <table>
+      <tr><th>Combinação</th><th>Razão</th><th>Veredito</th><th>Uso permitido</th></tr>
+      <tr><td>Navy 700 sobre branco</td><td class="mono">11,1:1</td><td class="pass">AAA</td><td>Livre</td></tr>
+      <tr><td>Cinza 600 sobre branco</td><td class="mono">5,1:1</td><td class="pass">AA</td><td>Texto corrido</td></tr>
+      <tr><td>Dourado 500 sobre navy 700</td><td class="mono">4,7:1</td><td class="warn">AA grande</td><td>Títulos ≥24px, ícones, fios</td></tr>
+      <tr><td>Dourado 500 sobre branco</td><td class="mono">2,4:1</td><td class="fail">Reprovado</td><td>Decorativo apenas</td></tr>
+      <tr><td>Areia 400 sobre branco</td><td class="mono">2,0:1</td><td class="fail">Reprovado</td><td>Ícone de linha apenas</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- TIPOGRAFIA -->
+<section id="tipo" class="alt">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">02 — Tipografia</p>
+      <h2 class="rule">Três vozes com funções distintas</h2>
+      <p><b style="color:var(--navy-700)">Archivo</b> nos títulos, com o traço reto de placa de obra. <b style="color:var(--navy-700)">Lato</b> no texto, herdeira direta do que o site já usa. E <b style="color:var(--navy-700)">IBM Plex Mono</b> em todo número — preço, metragem, CRECI. A monoespaçada é a assinatura do sistema: diz "aqui tem medida conferida" sem precisar escrever.</p>
+    </div>
+
+    <div class="type-row"><span class="lbl">Display · 61px</span><div class="t-display">CONECTANDO VOCÊ</div></div>
+    <div class="type-row"><span class="lbl">H2 · 39px</span><div class="t-h2">Equipe técnica completa</div></div>
+    <div class="type-row"><span class="lbl">H3 · 31px</span><div class="t-h3">Casa no Jardim Guanabara</div></div>
+    <div class="type-row"><span class="lbl">Rótulo · 13px</span><div class="eyebrow">Avaliação do seu imóvel</div></div>
+    <div class="type-row"><span class="lbl">Lead · 19px</span><div class="t-lead">Nossa engenheira avalia a estrutura antes de você assinar qualquer coisa.</div></div>
+    <div class="type-row"><span class="lbl">Corpo · 16px</span><div class="t-body">Somos especialistas em consultoria imobiliária. A VDC nasceu da parceria entre um consultor de imóveis e uma engenheira civil, e hoje reúne também arquitetura e assessoria jurídica no mesmo escritório.</div></div>
+    <div class="type-row"><span class="lbl">Dado · Plex Mono</span><div class="t-data">R$ 550.000 · 180 m² · CRECI 35889</div></div>
+  </div>
+</section>
+
+<!-- FORMA -->
+<section id="forma">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">03 — Forma e espaço</p>
+      <h2 class="rule">Reto absoluto ou círculo perfeito</h2>
+      <p>O contraste vem do próprio logo: monograma reto dentro de um arco circular. Nada de cantos de 12 ou 16px — o arredondado genérico de dashboard está fora do sistema.</p>
+    </div>
+    <div class="grid-3">
+      <div>
+        <h3>Raio</h3>
+        <div style="display:flex;gap:16px;align-items:flex-end;margin-top:24px">
+          <div style="text-align:center"><div style="width:76px;height:76px;background:var(--navy-700);border-radius:0"></div><small class="mono" style="font-size:11px;color:var(--gray-600)">0 · faixas</small></div>
+          <div style="text-align:center"><div style="width:76px;height:76px;background:var(--navy-700);border-radius:4px"></div><small class="mono" style="font-size:11px;color:var(--gray-600)">4px · UI</small></div>
+          <div style="text-align:center"><div style="width:76px;height:76px;background:var(--navy-700);border-radius:50%"></div><small class="mono" style="font-size:11px;color:var(--gray-600)">círculo · foto</small></div>
+        </div>
+      </div>
+      <div>
+        <h3>Espaçamento</h3>
+        <div style="margin-top:24px">
+          <div style="height:8px;background:var(--gold-500);width:4px;margin-bottom:6px"></div>
+          <div style="height:8px;background:var(--gold-500);width:8px;margin-bottom:6px"></div>
+          <div style="height:8px;background:var(--gold-500);width:16px;margin-bottom:6px"></div>
+          <div style="height:8px;background:var(--gold-500);width:24px;margin-bottom:6px"></div>
+          <div style="height:8px;background:var(--gold-500);width:32px;margin-bottom:6px"></div>
+          <div style="height:8px;background:var(--gold-500);width:48px;margin-bottom:6px"></div>
+          <div style="height:8px;background:var(--gold-500);width:64px;margin-bottom:6px"></div>
+          <div style="height:8px;background:var(--gold-500);width:96px;margin-bottom:6px"></div>
+          <div style="height:8px;background:var(--gold-500);width:128px"></div>
+          <p class="mono" style="font-size:12px;margin-top:12px">4 · 8 · 12 · 16 · 24 · 32 · 48 · 64 · 96 · 128</p>
+        </div>
+      </div>
+      <div>
+        <h3>Sombra</h3>
+        <div style="display:flex;gap:16px;margin-top:24px">
+          <div style="width:72px;height:72px;background:#fff;border:1px solid var(--gray-400);border-radius:4px;box-shadow:var(--sh-sm)"></div>
+          <div style="width:72px;height:72px;background:#fff;border:1px solid var(--gray-400);border-radius:4px;box-shadow:var(--sh-md)"></div>
+          <div style="width:72px;height:72px;background:#fff;border:1px solid var(--gray-400);border-radius:4px;box-shadow:var(--sh-lg)"></div>
+        </div>
+        <p style="font-size:13px;margin-top:16px">Sempre azuladas e frias — <span class="mono" style="font-size:12px">rgba(21,43,67,·)</span>. Nunca cinza puro, nunca colorida.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COMPONENTES -->
+<section id="comp" class="alt">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">04 — Componentes</p>
+      <h2 class="rule">Peças prontas</h2>
+    </div>
+
+    <h3>Botões</h3>
+    <div class="btns">
+      <button class="btn b-p">Falar com consultor</button>
+      <button class="btn b-s">Ver imóveis</button>
+      <button class="btn b-g">Agendar visita</button>
+      <button class="btn b-w">WhatsApp</button>
+    </div>
+    <p style="font-size:13px;margin-top:16px">O botão dourado é o CTA principal — <b style="color:var(--navy-700)">um por tela</b>. Navegue com Tab para ver o anel de foco.</p>
+
+    <h3 style="margin-top:64px">Card de imóvel</h3>
+    <div class="grid-3" style="margin-top:24px">
+      <div class="card">
+        <div class="ph"><span class="chip">À venda</span></div>
+        <div class="bd">
+          <p class="eyebrow">Jardim Guanabara</p>
+          <h4>Casa 3 dormitórios</h4>
+          <div class="gold-rule"></div>
+          <div class="price">R$ 550.000</div>
+          <div class="specs">180 m² · 3 quartos · 2 suítes · 2 vagas</div>
+          <button class="btn b-s">Falar com consultor</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ph"><span class="chip">Ponto comercial</span></div>
+        <div class="bd">
+          <p class="eyebrow">Bairro Brasil</p>
+          <h4>Terreno com frente</h4>
+          <div class="gold-rule"></div>
+          <div class="price">R$ 305.000</div>
+          <div class="specs">100 m² (5×20) · fácil acesso · estacionamento</div>
+          <button class="btn b-s">Falar com consultor</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ph"><span class="chip">Locação</span></div>
+        <div class="bd">
+          <p class="eyebrow">Centro</p>
+          <h4>Sala comercial</h4>
+          <div class="gold-rule"></div>
+          <div class="price">R$ 2.400<span style="font-size:14px;color:var(--gray-600)">/mês</span></div>
+          <div class="specs">45 m² · laudo técnico · seguro locatício</div>
+          <button class="btn b-s">Falar com consultor</button>
+        </div>
+      </div>
+    </div>
+
+    <h3 style="margin-top:64px">Selos de credencial</h3>
+    <p style="font-size:14px">As provas concretas da marca merecem tratamento de selo, não de bullet point.</p>
+    <div class="seals">
+      <div class="seal">CRECI<br>35889</div>
+      <div class="seal">Laudo<br>técnico</div>
+      <div class="seal">Assessoria<br>jurídica</div>
+      <div class="seal">Seguro<br>locatício</div>
+    </div>
+
+    <h3 style="margin-top:64px">Bloco de equipe</h3>
+    <p style="font-size:14px">Rosto e registro profissional é o que separa a VDC de um perfil de anúncios.</p>
+    <div class="team">
+      <div style="display:flex;gap:16px;align-items:center">
+        <div class="av">DF</div>
+        <div>
+          <div style="font:600 20px var(--f-d);color:var(--navy-700)">Deyse Fontes</div>
+          <div class="eyebrow">Engenharia civil</div>
+          <div class="mono" style="font-size:12px;color:var(--gray-600);margin-top:4px">CREA-BA · (77) 99105-6261</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:16px;align-items:center">
+        <div class="av">JA</div>
+        <div>
+          <div style="font:600 20px var(--f-d);color:var(--navy-700)">Dr. José Ângelo</div>
+          <div class="eyebrow">Jurídico</div>
+          <div class="mono" style="font-size:12px;color:var(--gray-600);margin-top:4px">OAB-BA · (77) 99945-0563</div>
+        </div>
+      </div>
+    </div>
+
+    <h3 style="margin-top:64px">Campo de formulário</h3>
+    <div class="field">
+      <label for="n">Nome</label>
+      <input id="n" placeholder="Como podemos te chamar?">
+    </div>
+  </div>
+</section>
+
+<!-- SOCIAL -->
+<section id="social">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">05 — Redes sociais</p>
+      <h2 class="rule">O post no padrão VDC</h2>
+      <p>Etiqueta de preço navy com fio dourado no lugar do adesivo vermelho. É a mudança de maior impacto e menor custo do sistema inteiro — alinha o Instagram ao posicionamento técnico que o logo já promete.</p>
+    </div>
+    <div class="posts">
+      <div class="post">
+        <div class="photo"></div><div class="veil"></div><div class="arcw" aria-hidden="true"></div>
+        <div class="content">
+          <span class="tag">R$ 550.000</span>
+          <h5>Casa no Jardim Guanabara</h5>
+          <div class="kv">180 M² · 3 QUARTOS · 2 SUÍTES · 2 VAGAS</div>
+          <div class="bar"><span>VDC IMÓVEIS</span><span>@VDCIMOVEIS</span></div>
+        </div>
+      </div>
+      <div class="post post--navy">
+        <div class="photo"></div><div class="arcw" aria-hidden="true"></div>
+        <div class="content">
+          <p class="eyebrow">Antes de assinar</p>
+          <h5 style="margin-top:10px">O que a vistoria verifica</h5>
+          <ul style="margin-top:18px">
+            <li><span class="num">01</span><b>Estrutura</b>Fissuras, recalque e laje conferidos por engenheira civil.</li>
+            <li><span class="num">02</span><b>Documentação</b>Matrícula, ônus e certidões analisados pelo jurídico.</li>
+            <li><span class="num">03</span><b>Laudo</b>Relatório fotográfico entregue antes da assinatura.</li>
+          </ul>
+          <div class="bar"><span>DEYSE FONTES · CREA-BA</span><span>@VDCIMOVEIS</span></div>
+        </div>
+      </div>
+      <div class="post" style="background:var(--off);border-style:dashed;justify-content:center;align-items:center;text-align:center">
+        <div style="padding:32px">
+          <p class="eyebrow">Rotação do grid</p>
+          <p style="font:600 22px/1.3 var(--f-d);color:var(--navy-700);margin-top:12px">Imóvel → Técnico → Equipe</p>
+          <p style="font-size:14px;margin-top:16px">Publicar nesta ordem faz o perfil ler como catálogo, não como mural. Margem de segurança de 80px, faixa inferior navy de 160px, um arco por post.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- REGRAS -->
+<section id="regras" class="alt">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">06 — Regras</p>
+      <h2 class="rule">Faça e não faça</h2>
+    </div>
+    <div class="dd">
+      <div class="ok">
+        <h4>✓ Faça</h4>
+        <ul>
+          <li>Dourado em fio, ícone, selo e borda — no máximo 10% da peça</li>
+          <li>Um arco por peça, em escala grande</li>
+          <li>Preço, m² e registro sempre em IBM Plex Mono</li>
+          <li>Bairro + Vitória da Conquista em toda peça</li>
+          <li>Foto com verticais corrigidas e luz de fim de tarde</li>
+          <li>Véu navy 55% antes de colocar texto sobre foto</li>
+          <li>Rosto e registro profissional da equipe visíveis</li>
+        </ul>
+      </div>
+      <div class="no">
+        <h4>✕ Não faça</h4>
+        <ul>
+          <li>Adesivo vermelho ou laranja de preço</li>
+          <li>Gradiente navy→dourado em fundo ou botão</li>
+          <li>Texto dourado sobre branco (2,4:1 — ilegível)</li>
+          <li>Cantos de 12px, 16px ou mais</li>
+          <li>Glassmorphism sobre foto de imóvel</li>
+          <li>Título em caixa alta com mais de 5 palavras</li>
+          <li>"Imperdível", "corre", "última chance"</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="mark">VD<span class="g">C</span></div>
+    <p style="color:var(--navy-100);margin-top:8px">Conectando você ao seu lugar ideal.</p>
+    <p class="cred">CRECI 35889 · Av. Guanambi, 2791 — Sala 01 · Vitória da Conquista — BA</p>
+    <p style="color:var(--navy-300);font-size:12px;margin-top:24px">Sistema de identidade visual v1.0 · agosto de 2026 · acompanha DESIGN.md, design-tokens.json, vdc-tokens.css e PROMPTS-IA.md</p>
+  </div>
+</footer>
+
+<div class="toast" id="toast">copiado</div>
+
+<script>
+const groups = {
+  'sw-navy':[
+    ['#152B43','Navy 900','Monograma do logo. Fundos institucionais escuros.','#fff'],
+    ['#283B62','Navy 700','Cor-mãe. Títulos, faixas, botão primário.','#fff'],
+    ['#5272B2','Navy 500','Estado ativo, links, hover.','#fff'],
+    ['#8FA3C8','Navy 300','Ícones sobre navy, bordas sutis.','#152B43'],
+    ['#E7ECF5','Navy 100','Fundo de bloco, chip, tabela.','#152B43']
+  ],
+  'sw-gold':[
+    ['#F2D376','Dourado 300','Brilho do gradiente metálico. Nunca sozinho.','#152B43'],
+    ['#C9A44E','Dourado 500','Destaque: fios, ícones, selos, preço.','#152B43'],
+    ['#8F7534','Dourado 700','Sombra do gradiente metálico.','#fff'],
+    ['#CBB492','Areia 400','Ícones de linha. Decorativo.','#152B43'],
+    ['#F5EFE6','Areia 100','Fundo quente alternativo.','#152B43']
+  ],
+  'sw-neutral':[
+    ['#FFFFFF','Branco','Fundo padrão.','#1A1F2B'],
+    ['#F7F8FA','Off-white','Seção alternada.','#1A1F2B'],
+    ['#C9CED8','Cinza 400','Bordas, divisores, placeholder.','#1A1F2B'],
+    ['#616E89','Cinza 600','Texto secundário. AA sobre branco.','#fff'],
+    ['#1A1F2B','Ink','Texto principal.','#fff'],
+    ['#25D366','WhatsApp','Marca de terceiro. Não alterar.','#fff'],
+    ['#B4472E','Alerta','Terracota, não vermelho puro.','#fff']
+  ]
+};
+for (const [id,list] of Object.entries(groups)) {
+  const el = document.getElementById(id);
+  list.forEach(([hex,name,desc,fg])=>{
+    const b=document.createElement('button');
+    b.className='sw'; b.type='button';
+    b.setAttribute('aria-label','Copiar '+hex);
+    b.innerHTML='<div class="chip" style="background:'+hex+';'+(hex==='#FFFFFF'?'box-shadow:inset 0 0 0 1px #C9CED8;':'')+'"></div>'+
+      '<div class="info"><b>'+name+'</b><code>'+hex+'</code><small>'+desc+'</small></div>';
+    b.onclick=()=>copy(hex);
+    el.appendChild(b);
+  });
+}
+const toast=document.getElementById('toast');
+let t;
+function copy(v){
+  const done=()=>{toast.textContent=v+' copiado';toast.classList.add('on');clearTimeout(t);t=setTimeout(()=>toast.classList.remove('on'),1600);};
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(v).then(done).catch(fallback);}
+  else fallback();
+  function fallback(){const a=document.createElement('textarea');a.value=v;document.body.appendChild(a);a.select();try{document.execCommand('copy');}catch(e){}a.remove();done();}
+}
+</script>
+</body>
+</html>

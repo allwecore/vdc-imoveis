@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}Quem somos | VDC Imóveis{% endblock %}
+
+{% block content %}
+{% include "partials/header.html" %}
+
+<section class="vdc-about__hero{% if not page.hero_image_path %} vdc-about__hero--plain{% endif %}"
+         {% if page.hero_image_path %}style="background-image: url('{{ url_for('static', filename=page.hero_image_path) }}');"{% endif %}>
+  <div class="vdc-container vdc-about__hero-inner">
+    <nav class="vdc-about__crumbs" aria-label="Você está aqui">
+      <a href="{{ url_for('index') }}">Início</a>
+      <span aria-hidden="true">/</span>
+      <span>Quem somos</span>
+    </nav>
+    <span class="vdc-eyebrow vdc-about__eyebrow">{{ page.hero_eyebrow or 'Nossa história' }}</span>
+    <h1 class="vdc-about__title">
+      {{ page.hero_title }}{% if page.hero_highlight %}<span class="vdc-about__title-accent">{{ page.hero_highlight }}</span>{% endif %}
+    </h1>
+    {% if page.hero_lead %}<p class="vdc-about__lead">{{ page.hero_lead }}</p>{% endif %}
+  </div>
+</section>
+
+{% if page.stat_items %}
+<div class="vdc-about__stats">
+  <div class="vdc-container vdc-about__stats-inner">
+    {% for stat in page.stat_items %}
+    <div class="vdc-about__stat">
+      <strong>{{ stat.value }}</strong>
+      {% if stat.label %}<span>{{ stat.label }}</span>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{% if page.history_paragraphs or page.history_image_path %}
+<section class="vdc-section">
+  <div class="vdc-container vdc-about__story{% if not page.history_image_path %} vdc-about__story--solo{% endif %}">
+    <div class="vdc-about__story-text">
+      <span class="vdc-eyebrow">Quem somos</span>
+      {% for paragraph in page.history_paragraphs %}
+      <p class="vdc-body vdc-about__story-p">{{ paragraph }}</p>
+      {% endfor %}
+      <div class="vdc-about__story-actions">
+        <a href="{{ url_for('index') }}#contato" class="vdc-btn vdc-btn--primary">
+          Fale conosco
+          <svg class="vdc-icon-arrow" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </a>
+        <a href="{{ url_for('search') }}" class="vdc-btn vdc-btn--secondary">Ver imóveis</a>
+      </div>
+    </div>
+
+    {% if page.history_image_path %}
+    <div class="vdc-about__story-media">
+      <img src="{{ url_for('static', filename=page.history_image_path) }}" alt="VDC Imóveis">
+      {% if page.badge_value %}
+      <div class="vdc-about__badge">
+        <strong>{{ page.badge_value }}</strong>
+        {% if page.badge_label %}<span>{{ page.badge_label }}</span>{% endif %}
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endif %}
+
+{% if page.mission or page.vision or page.value_items %}
+<section class="vdc-section" style="background: var(--vdc-off-white);">
+  <div class="vdc-container">
+    <div class="vdc-section-head vdc-section-head--center">
+      <span class="vdc-eyebrow">Nossos princípios</span>
+      <h2 class="vdc-h2">Missão, visão e valores</h2>
+    </div>
+
+    <div class="vdc-about__principles">
+      {% if page.mission %}
+      <article class="vdc-about__principle">
+        <span class="vdc-about__principle-icon">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2L4.5 13H11l-1 9 8.5-11H12z"/></svg>
+        </span>
+        <h3 class="vdc-about__principle-title">Missão</h3>
+        <p class="vdc-body">{{ page.mission }}</p>
+      </article>
+      {% endif %}
+
+      {% if page.vision %}
+      <article class="vdc-about__principle">
+        <span class="vdc-about__principle-icon">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+        </span>
+        <h3 class="vdc-about__principle-title">Visão</h3>
+        <p class="vdc-body">{{ page.vision }}</p>
+      </article>
+      {% endif %}
+
+      {% if page.value_items %}
+      <article class="vdc-about__principle">
+        <span class="vdc-about__principle-icon">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21c-.3 0-.6-.1-.8-.3C8.7 18.9 3 14.2 3 9.3 3 6.4 5.3 4 8.2 4c1.6 0 3.1.8 4 2 .9-1.2 2.4-2 4-2C18.7 4 21 6.4 21 9.3c0 4.9-5.7 9.6-8.2 11.4-.2.2-.5.3-.8.3z"/></svg>
+        </span>
+        <h3 class="vdc-about__principle-title">Valores</h3>
+        <ul class="vdc-about__values">
+          {% for value in page.value_items %}
+          <li>
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 13l4 4L19 7"/></svg>
+            {{ value }}
+          </li>
+          {% endfor %}
+        </ul>
+      </article>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% include "partials/footer.html" %}
+{% endblock %}

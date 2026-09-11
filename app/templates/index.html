@@ -1,0 +1,301 @@
+{% extends "base.html" %}
+{% from "_macros.html" import property_card, empty_state %}
+
+{% block content %}
+{% include "partials/header.html" %}
+
+<section class="vdc-hero">
+  <div class="vdc-hero__slides">
+    {% for slide in hero_slides %}
+    <div class="vdc-hero__slide {% if loop.first %}is-active{% endif %}"
+         style="background-image:url('{{ url_for('static', filename=slide.image_path) }}');"
+         role="img" aria-label="{{ slide.alt_text }}"></div>
+    {% else %}
+    <div class="vdc-hero__slide vdc-hero__slide--fallback is-active">
+      <svg class="vdc-hero__arc" viewBox="0 0 600 600" aria-hidden="true">
+        <circle cx="300" cy="300" r="260" fill="none" stroke="var(--vdc-gold-500)" stroke-width="3"
+                stroke-linecap="round" stroke-dasharray="1066 1634" transform="rotate(-40 300 300)"/>
+        <circle cx="300" cy="300" r="230" fill="none" stroke="var(--vdc-navy-300)" stroke-width="3"
+                stroke-linecap="round" stroke-dasharray="943 1445" opacity="0.7" transform="rotate(160 300 300)"/>
+      </svg>
+    </div>
+    {% endfor %}
+  </div>
+  <div class="vdc-hero__veil"></div>
+
+  {# Arco da marca, "desenho do traço" ao carregar (DESIGN.md §10) —
+     especificado no sistema de identidade mas nunca construído até
+     agora. Marca d'água discreta (~7% opacidade), sangrando por um
+     canto, uma vez só e só aqui na home — exatamente a regra do
+     documento de marca ("o arco aparece uma vez por peça"). #}
+  <svg class="vdc-hero__signature" viewBox="0 0 400 400" aria-hidden="true">
+    <circle cx="200" cy="200" r="170" fill="none" stroke="var(--vdc-gold-500)" stroke-width="2"
+            stroke-linecap="round" pathLength="1" stroke-dasharray="0.62 1"
+            transform="rotate(-40 200 200)" class="vdc-hero__signature-arc vdc-hero__signature-arc--gold"/>
+    <circle cx="200" cy="200" r="145" fill="none" stroke="var(--vdc-navy-300)" stroke-width="2"
+            stroke-linecap="round" pathLength="1" stroke-dasharray="0.62 1"
+            transform="rotate(160 200 200)" class="vdc-hero__signature-arc vdc-hero__signature-arc--navy"/>
+  </svg>
+
+  {% if hero_slides|length > 1 %}
+  <div class="vdc-hero__dots" role="tablist" aria-label="Fotos em destaque">
+    {% for slide in hero_slides %}
+    <button type="button" class="vdc-hero__dot {% if loop.first %}is-active{% endif %}" data-hero-dot aria-label="Foto {{ loop.index }}"></button>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <div class="vdc-hero__inner vdc-container">
+    <span class="vdc-eyebrow vdc-hero__eyebrow">VDC Imóveis · Vitória da Conquista - BA</span>
+    <h1 class="vdc-hero__title">Seu próximo imóvel, com <span>segurança técnica</span> do início ao fim</h1>
+    <p class="vdc-hero__lead">Consultoria, engenharia civil, arquitetura e jurídico reunidos em uma única mesa, para decisões respaldadas por laudo técnico.</p>
+
+    <div class="vdc-hero__search">
+      <div class="vdc-hero__tabs" role="tablist" aria-label="Modo de busca">
+        <button type="button" class="vdc-hero__tab is-active" data-hero-tab data-search-target="basic" role="tab" aria-selected="true">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.2 5.6 6 .5-4.6 3.9 1.5 5.8L12 14.9 6.9 17.8l1.5-5.8-4.6-3.9 6-.5z"/></svg>
+          Busca Inteligente
+        </button>
+        <button type="button" class="vdc-hero__tab" data-hero-tab data-search-target="advanced" role="tab" aria-selected="false">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+          Busca Avançada
+        </button>
+      </div>
+      <form class="vdc-hero__search-row" action="{{ url_for('search') }}" method="get" data-search-panel="basic">
+        <div class="vdc-hero__search-field">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          <input type="text" name="q" placeholder="Digite tipo, bairro ou referência" aria-label="Buscar imóvel">
+        </div>
+        <button type="submit" class="vdc-btn vdc-btn--gold">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          Buscar
+        </button>
+      </form>
+
+      <form class="vdc-hero__advanced" action="{{ url_for('search') }}" method="get" data-search-panel="advanced" hidden>
+        <div class="vdc-hero__advanced-grid">
+          <select name="tipo" class="vdc-input vdc-select" aria-label="Tipo de imóvel">
+            <option value="">Qualquer tipo</option>
+            {% for value, label in property_type_options.items() %}
+            <option value="{{ value }}">{{ label }}</option>
+            {% endfor %}
+          </select>
+          <select name="bairro" class="vdc-input vdc-select" aria-label="Bairro">
+            <option value="">Qualquer bairro</option>
+            {% for n in neighborhood_options %}
+            <option value="{{ n }}">{{ n }}</option>
+            {% endfor %}
+          </select>
+          <select name="status" class="vdc-input vdc-select" aria-label="Venda ou aluguel">
+            <option value="">Venda ou aluguel</option>
+            <option value="venda">À venda</option>
+            <option value="aluguel">Para alugar</option>
+          </select>
+          <select name="preco_max" class="vdc-input vdc-select" aria-label="Preço máximo">
+            <option value="">Sem limite de preço</option>
+            <option value="200000">Até R$ 200 mil</option>
+            <option value="400000">Até R$ 400 mil</option>
+            <option value="600000">Até R$ 600 mil</option>
+            <option value="1000000">Até R$ 1 milhão</option>
+          </select>
+        </div>
+        <button type="submit" class="vdc-btn vdc-btn--gold vdc-hero__advanced-submit">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          Buscar com filtros
+        </button>
+      </form>
+
+      <div class="vdc-hero__filters" data-search-panel="basic">
+        {% for filter in quick_filters %}
+        <a class="vdc-hero__filter" href="{{ url_for('search', q=filter) }}">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11l8-7 8 7M6 10v9h12v-9"/></svg>
+          {{ filter }}
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="vdc-hero__badges">
+      <div class="vdc-hero__badge"><strong>4</strong><span>especialidades reunidas</span></div>
+      <div class="vdc-hero__badge"><strong>1</strong><span>mesa só, do laudo ao contrato</span></div>
+      <div class="vdc-hero__badge"><strong>CRECI</strong><span>35889</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="vdc-section vdc-reveal" id="especialidades">
+  <div class="vdc-container">
+    <div class="vdc-section-head vdc-section-head--center">
+      <span class="vdc-eyebrow">Como trabalhamos</span>
+      <h2 class="vdc-h2">Quatro especialidades, uma única decisão</h2>
+    </div>
+    {# Bolder (impeccable): antes eram 4 caixas brancas idênticas e
+       desconectadas — o padrão mais genérico possível de grade de
+       "ícone + título + texto". A VDC já tem a própria metáfora pra
+       isso ("consultoria, engenharia e jurídico na mesma mesa") — em
+       vez de inventar um efeito novo, a seção agora literaliza essa
+       frase: os 4 ícones "sentam" num fio dourado só, como se
+       estivessem todos na mesma mesa. Sem caixa, sem borda — a linha
+       é o que junta os quatro. #}
+    <div class="vdc-specialties">
+      {% for s in specialties %}
+      <div class="vdc-specialty">
+        <div class="vdc-specialty__icon">
+          {% if s.icon == 'consultoria' %}
+          <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l4-4 4 3 3-3 4 4"/><path d="M8 11l3 3-2 2"/><path d="M16 11l-3 3 2 2"/></svg>
+          {% elif s.icon == 'engenharia' %}
+          <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="10" width="18" height="6" rx="1"/><path d="M7 10v3M11 10v3M15 10v3M19 10v3"/></svg>
+          {% elif s.icon == 'arquitetura' %}
+          <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 18-7-4-7 4 7-18z"/></svg>
+          {% else %}
+          <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M7 21h10M4 7h6M14 7h6"/><path d="M4 7l-2 5a3 3 0 0 0 6 0L4 7zM20 7l-2 5a3 3 0 0 0 6 0L20 7z"/></svg>
+          {% endif %}
+        </div>
+        <span class="vdc-eyebrow">{{ s.label }}</span>
+        <h3 class="vdc-specialty__title">{{ s.title }}</h3>
+        <p class="vdc-body vdc-specialty__text">{{ s.text }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="vdc-section vdc-reveal" id="imoveis" style="background: var(--vdc-off-white);">
+  <div class="vdc-container">
+    <div class="vdc-section-head" style="display:flex; justify-content:space-between; align-items:flex-end; max-width:none;">
+      <div>
+        <span class="vdc-eyebrow">Selecionados a dedo</span>
+        <h2 class="vdc-h2">Imóveis em destaque</h2>
+      </div>
+      <a href="{{ url_for('search') }}" class="vdc-btn vdc-btn--secondary">
+        Ver todos os imóveis
+        <svg class="vdc-icon-arrow" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </a>
+    </div>
+    <div class="vdc-properties">
+      {% for p in properties %}
+      {{ property_card(p) }}
+      {% else %}
+      {{ empty_state(
+        "Novos imóveis em breve",
+        "Nossa carteira muda toda semana. Fale com um consultor agora e receba as opções que ainda não estão no site.",
+        "Falar com um consultor", url_for('index') + "#contato"
+      ) }}
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="vdc-section vdc-section--tight vdc-reveal" id="credenciais">
+  <div class="vdc-container">
+    <div class="vdc-section-head vdc-section-head--center">
+      <span class="vdc-eyebrow">Prova, não promessa</span>
+      <h2 class="vdc-h2">As credenciais por trás de cada negociação</h2>
+    </div>
+    <div class="vdc-seals">
+      {% for seal in seals %}
+      <div class="vdc-seal">{{ seal }}</div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="vdc-section vdc-reveal" id="equipe" style="background: var(--vdc-off-white);">
+  <div class="vdc-container">
+    <div class="vdc-section-head vdc-section-head--center">
+      <span class="vdc-eyebrow">Quem está na mesa</span>
+      <h2 class="vdc-h2">A equipe por trás da VDC</h2>
+    </div>
+    <div class="vdc-team">
+      {% for member in team %}
+      <div>
+        <div class="vdc-team__avatar{% if member.placeholder %} vdc-team__avatar--placeholder{% endif %}">{{ member.initials }}</div>
+        <h3 class="vdc-team__name">{{ member.name }}</h3>
+        <span class="vdc-eyebrow vdc-team__role">{{ member.role }}</span>
+        <span class="vdc-caption vdc-team__credential">{{ member.credential }}</span>
+        {% if member.placeholder %}<span class="vdc-team__tag">Vaga em preenchimento</span>{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="vdc-section vdc-reveal" id="contato">
+  <div class="vdc-container">
+    <div class="vdc-section-head vdc-section-head--center">
+      <span class="vdc-eyebrow">Não achou o imóvel ideal?</span>
+      <h2 class="vdc-h2">Como prefere ser atendido?</h2>
+      <p class="vdc-body" style="color: var(--vdc-gray-600); margin-top: var(--vdc-space-3);">
+        Nossa carteira é maior do que o site. Escolha o canal de preferência e um consultor cruza bairro, orçamento e prazo com você.
+        <a href="{{ url_for('search') }}" class="vdc-link-arrow">Ver todos os imóveis
+          <svg class="vdc-icon-arrow" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </a>
+      </p>
+    </div>
+    </div>
+
+    <div class="vdc-contact-hub">
+      <div class="vdc-contact-switch" data-contact-switch data-active="whatsapp">
+        <span class="vdc-contact-switch__thumb" data-switch-thumb aria-hidden="true"></span>
+        <button type="button" class="vdc-contact-switch__tab is-active" data-contact-tab="whatsapp" role="tab" aria-selected="true" aria-controls="painel-whatsapp">
+          <svg class="vdc-contact-switch__icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h4l2 5-3 2a12 12 0 0 0 6 6l2-3 5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 2 6a2 2 0 0 1 2-2z"/></svg>
+          WhatsApp
+        </button>
+        <button type="button" class="vdc-contact-switch__tab" data-contact-tab="email" role="tab" aria-selected="false" aria-controls="painel-email">
+          <svg class="vdc-contact-switch__icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M4 7l8 6 8-6"/></svg>
+          E-mail
+        </button>
+      </div>
+
+      <div class="vdc-contact-panel" data-contact-panel="whatsapp" id="painel-whatsapp">
+        <div class="vdc-contact-panel__whatsapp">
+          <span class="vdc-eyebrow" style="color: var(--vdc-whatsapp);">Resposta mais rápida</span>
+          <h3 class="vdc-h3">Fale agora com um consultor</h3>
+          <p class="vdc-body" style="color: var(--vdc-gray-600); margin-top: var(--vdc-space-2);">Conte o que procura e receba retorno no mesmo atendimento, sem necessidade de preencher formulário.</p>
+          <div class="vdc-contact__info-row">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <div>
+              <strong class="vdc-data" style="font-size:16px;">Vitória da Conquista - BA</strong>
+              <p class="vdc-small">Atendimento presencial com hora marcada.</p>
+            </div>
+          </div>
+          <a href="https://wa.me/{{ whatsapp_number }}" target="_blank" rel="noopener" class="vdc-btn vdc-btn--whatsapp vdc-contact-panel__whatsapp-cta">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h4l2 5-3 2a12 12 0 0 0 6 6l2-3 5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 2 6a2 2 0 0 1 2-2z"/></svg>
+            Chamar no WhatsApp
+          </a>
+        </div>
+      </div>
+
+      <div class="vdc-contact-panel" data-contact-panel="email" id="painel-email" hidden>
+        <span class="vdc-eyebrow" style="color: var(--vdc-gold-700);">Sem pressa pra responder agora</span>
+        <h3 class="vdc-h3">Um consultor retorna em até um dia útil</h3>
+        <form class="vdc-contact__form" style="margin-top: var(--vdc-space-5);" action="{{ url_for('contato') }}" method="post" data-submit-feedback>
+          <div>
+            <label for="name">Nome <span class="vdc-required" aria-hidden="true">*</span></label>
+            <input class="vdc-input" type="text" id="name" name="name" required>
+          </div>
+          <div>
+            <label for="phone">Telefone / WhatsApp <span class="vdc-required" aria-hidden="true">*</span></label>
+            <input class="vdc-input" type="tel" id="phone" name="phone" required>
+          </div>
+          <div>
+            <label for="email">E-mail</label>
+            <input class="vdc-input" type="email" id="email" name="email">
+          </div>
+          <div>
+            <label for="message">O que você procura?</label>
+            <textarea class="vdc-input" id="message" name="message" placeholder="Ex.: apartamento de 2 quartos no Recreio, até R$ 400 mil"></textarea>
+          </div>
+          <p class="vdc-small vdc-contact__form-note"><span class="vdc-required" aria-hidden="true">*</span> Campos obrigatórios</p>
+          <button type="submit" class="vdc-btn vdc-btn--primary">
+            Enviar para um consultor
+            <svg class="vdc-icon-arrow" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% include "partials/footer.html" %}
+{% endblock %}

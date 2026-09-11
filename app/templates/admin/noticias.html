@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<script>document.documentElement.classList.add('js');</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin · Notícias | VDC Imóveis</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700&family=Hanken+Grotesk:wght@400;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+</head>
+<body class="vdc-admin">
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+  <div class="vdc-flash-stack" data-flash-stack>
+    {% for category, message in messages %}
+    <div class="vdc-flash vdc-flash--{{ category }}"
+         role="{{ 'alert' if category == 'error' else 'status' }}"
+         aria-live="{{ 'assertive' if category == 'error' else 'polite' }}"
+         data-flash>
+      <span>{{ message }}</span>
+      <button type="button" class="vdc-flash__close" data-flash-close aria-label="Fechar aviso">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+{% endwith %}
+
+<div class="vdc-admin__bar">
+  <div class="vdc-container vdc-admin__bar-inner">
+    <nav class="vdc-admin__nav" aria-label="Seções do admin">
+      <a href="{{ url_for('admin_properties') }}">Imóveis</a>
+      <a href="{{ url_for('admin_hero') }}">Hero</a>
+      <a href="{{ url_for('admin_news') }}" class="is-current">Notícias</a>
+      <a href="{{ url_for('admin_about') }}">Quem somos</a>
+      <a href="{{ url_for('admin_team') }}">Equipe</a>
+      <a href="{{ url_for('admin_settings') }}">Configurações</a>
+      <form action="{{ url_for('admin_logout') }}" method="post" class="vdc-admin__nav-logout">
+        <button type="submit">Sair</button>
+      </form>
+    </nav>
+    <div class="vdc-admin__bar-head">
+      <div>
+        <span class="vdc-eyebrow vdc-admin__eyebrow">Painel VDC</span>
+        <h1 class="vdc-h2 vdc-admin__title">Notícias</h1>
+        <p class="vdc-body vdc-admin__subtitle">O conteúdo que aparece na aba "Notícias" do site. Rascunhos ficam salvos aqui sem aparecer para o visitante.</p>
+      </div>
+      <a href="{{ url_for('admin_news_new') }}" class="vdc-btn vdc-btn--gold">
+        Nova notícia
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="vdc-container vdc-admin__content">
+  {% if posts %}
+  <div class="vdc-admin__stats">
+    <div class="vdc-admin__stat">
+      <strong>{{ posts|length }}</strong>
+      <span>{{ 'Notícia no total' if posts|length == 1 else 'Notícias no total' }}</span>
+    </div>
+    <div class="vdc-admin__stat">
+      <strong>{{ published_count }}</strong>
+      <span>Publicadas no site</span>
+    </div>
+  </div>
+
+  <div class="vdc-admin__cards">
+    {% for post in posts %}
+    <article class="vdc-admin__prop-card">
+      <div class="vdc-admin__prop-photo vdc-admin__prop-photo--navy">
+        {% if post.image_path %}
+        <img src="{{ url_for('static', filename=post.image_path) }}" alt="">
+        {% else %}
+        <svg class="vdc-property__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h13a2 2 0 0 1 2 2v10a2 2 0 0 0 2 2H6a2 2 0 0 1-2-2z"/><path d="M8 9h7M8 13h7M8 17h4"/></svg>
+        {% endif %}
+        <span class="vdc-chip {{ 'vdc-admin__chip--venda' if post.published else 'vdc-admin__chip--rascunho' }} vdc-admin__prop-status">
+          {{ 'Publicada' if post.published else 'Rascunho' }}
+        </span>
+      </div>
+      <div class="vdc-admin__prop-body">
+        <div>
+          <span class="vdc-admin__table-title">{{ post.title }}</span>
+          <span class="vdc-small vdc-admin__table-sub">{{ post.category_label }} · {{ post.date_formatted }}</span>
+          {% if post.excerpt %}<p class="vdc-small vdc-admin__card-desc" style="margin-top: var(--vdc-space-3);">{{ post.excerpt }}</p>{% endif %}
+        </div>
+        <div class="vdc-admin__prop-footer">
+          <span class="vdc-admin__table-price">{{ post.reading_minutes }} min de leitura</span>
+          <div class="vdc-admin__table-actions">
+            {% if post.published %}
+            <a href="{{ url_for('news_post', slug=post.slug) }}" class="vdc-admin__action" target="_blank" rel="noopener">Ver</a>
+            {% endif %}
+            <a href="{{ url_for('admin_news_edit', post_id=post.id) }}" class="vdc-admin__action">Editar</a>
+            <form action="{{ url_for('admin_news_toggle_published', post_id=post.id) }}" method="post">
+              <button type="submit" class="vdc-admin__action">{{ 'Despublicar' if post.published else 'Publicar' }}</button>
+            </form>
+            <form action="{{ url_for('admin_news_delete', post_id=post.id) }}" method="post" onsubmit="return confirm('Excluir esta notícia definitivamente?');">
+              <button type="submit" class="vdc-admin__action vdc-admin__action--danger">Excluir</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="vdc-admin__empty-wrap">
+    <p class="vdc-body vdc-admin__empty">Nenhuma notícia cadastrada ainda. Clique em "Nova notícia" para publicar a primeira.</p>
+  </div>
+  {% endif %}
+
+  <a href="{{ url_for('index') }}" class="vdc-btn vdc-btn--secondary vdc-admin__back">← Voltar para a home</a>
+</div>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

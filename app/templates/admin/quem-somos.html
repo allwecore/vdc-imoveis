@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<script>document.documentElement.classList.add('js');</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin · Quem somos | VDC Imóveis</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700&family=Hanken+Grotesk:wght@400;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+</head>
+<body class="vdc-admin">
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+  <div class="vdc-flash-stack" data-flash-stack>
+    {% for category, message in messages %}
+    <div class="vdc-flash vdc-flash--{{ category }}"
+         role="{{ 'alert' if category == 'error' else 'status' }}"
+         aria-live="{{ 'assertive' if category == 'error' else 'polite' }}"
+         data-flash>
+      <span>{{ message }}</span>
+      <button type="button" class="vdc-flash__close" data-flash-close aria-label="Fechar aviso">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+{% endwith %}
+
+<div class="vdc-admin__bar">
+  <div class="vdc-container vdc-admin__bar-inner">
+    <nav class="vdc-admin__nav" aria-label="Seções do admin">
+      <a href="{{ url_for('admin_properties') }}">Imóveis</a>
+      <a href="{{ url_for('admin_hero') }}">Hero</a>
+      <a href="{{ url_for('admin_news') }}">Notícias</a>
+      <a href="{{ url_for('admin_about') }}" class="is-current">Quem somos</a>
+      <a href="{{ url_for('admin_team') }}">Equipe</a>
+      <a href="{{ url_for('admin_settings') }}">Configurações</a>
+      <form action="{{ url_for('admin_logout') }}" method="post" class="vdc-admin__nav-logout">
+        <button type="submit">Sair</button>
+      </form>
+    </nav>
+    <span class="vdc-eyebrow vdc-admin__eyebrow">Painel VDC</span>
+    <h1 class="vdc-h2 vdc-admin__title">Quem somos</h1>
+    <p class="vdc-body vdc-admin__subtitle">O conteúdo da aba "Quem somos" do site. Campos em branco somem da página.</p>
+  </div>
+</div>
+
+<div class="vdc-container vdc-admin__content">
+  <form class="vdc-wizard" style="margin: 0;" method="post" enctype="multipart/form-data" action="{{ url_for('admin_about') }}">
+    <div class="vdc-wizard__body" style="min-height: 0;">
+
+      <p class="vdc-eyebrow vdc-admin__section-label">Topo da página</p>
+
+      <label class="vdc-wizard__panel-label" style="font: 600 13px var(--vdc-font-display); color: var(--vdc-navy-700); display: block; margin-bottom: var(--vdc-space-3);">Foto de fundo do topo</label>
+      <div class="vdc-dropzone" data-dropzone>
+        <input type="file" name="hero_image" id="hero_image" accept="image/jpeg,image/png,image/webp" class="vdc-dropzone__input" data-dropzone-input>
+        <label for="hero_image" class="vdc-dropzone__label" data-dropzone-label {% if page.hero_image_path %}hidden{% endif %}>
+          <span class="vdc-dropzone__icon">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          </span>
+          <span class="vdc-dropzone__text">Clique ou arraste uma imagem</span>
+        </label>
+        <div class="vdc-dropzone__preview" data-dropzone-preview {% if not page.hero_image_path %}hidden{% endif %}>
+          <img data-dropzone-preview-img src="{{ url_for('static', filename=page.hero_image_path) if page.hero_image_path else '' }}" alt="Pré-visualização do topo">
+          <button type="button" class="vdc-dropzone__remove" data-dropzone-remove aria-label="Remover imagem">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+          </button>
+        </div>
+        <input type="hidden" name="remove_hero_image" value="0" data-dropzone-remove-flag>
+      </div>
+
+      <div class="vdc-wizard__grid">
+        <div class="vdc-field">
+          <span class="vdc-field__icon">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M4 12h10"/></svg>
+          </span>
+          <span class="vdc-field__body">
+            <label for="hero_eyebrow">Rótulo pequeno</label>
+            <input class="vdc-field__input" type="text" id="hero_eyebrow" name="hero_eyebrow" placeholder="Ex.: Nossa história" value="{{ page.hero_eyebrow }}">
+          </span>
+        </div>
+        <div class="vdc-field">
+          <span class="vdc-field__icon">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l2.2 5.6 6 .5-4.6 3.9 1.5 5.8L12 14.9 6.9 17.8l1.5-5.8-4.6-3.9 6-.5z"/></svg>
+          </span>
+          <span class="vdc-field__body">
+            <label for="hero_highlight">Parte destacada do título (dourado)</label>
+            <input class="vdc-field__input" type="text" id="hero_highlight" name="hero_highlight" placeholder="Ex.: desde 2015." value="{{ page.hero_highlight }}">
+          </span>
+        </div>
+      </div>
+
+      <div class="vdc-field vdc-field--full">
+        <span class="vdc-field__icon">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+        </span>
+        <span class="vdc-field__body">
+          <label for="hero_title">Título</label>
+          <input class="vdc-field__input" type="text" id="hero_title" name="hero_title" placeholder="Ex.: Seriedade e compromisso técnico" value="{{ page.hero_title }}">
+        </span>
+      </div>
+
+      <div class="vdc-field vdc-field--full vdc-field--textarea">
+        <span class="vdc-field__icon">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 6h14M5 11h14M5 16h8"/></svg>
+        </span>
+        <span class="vdc-field__body">
+          <label for="hero_lead">Texto de apoio do topo</label>
+          <textarea class="vdc-field__input" id="hero_lead" name="hero_lead" rows="3" placeholder="Uma ou duas frases apresentando a empresa.">{{ page.hero_lead }}</textarea>
+        </span>
+      </div>
+
+      <p class="vdc-eyebrow vdc-admin__section-label" style="margin-top: var(--vdc-space-7);">Faixa de números</p>
+      <div class="vdc-field vdc-field--full vdc-field--textarea">
+        <span class="vdc-field__icon">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19V5M9 19V9M14 19v-6M19 19V7"/></svg>
+        </span>
+        <span class="vdc-field__body">
+          <label for="stats">Números (um por linha, no formato <code>valor | rótulo</code>)</label>
+          <textarea class="vdc-field__input" id="stats" name="stats" rows="5" placeholder="4 | Especialidades reunidas&#10;CRECI 35889 | Registro profissional">{{ page.stats }}</textarea>
+        </span>
+      </div>
+
+      <p class="vdc-eyebrow vdc-admin__section-label" style="margin-top: var(--vdc-space-7);">História</p>
+
+      <label class="vdc-wizard__panel-label" style="font: 600 13px var(--vdc-font-display); color: var(--vdc-navy-700); display: block; margin-bottom: var(--vdc-space-3);">Foto da história</label>
+      <div class="vdc-dropzone" data-dropzone>
+        <input type="file" name="history_image" id="history_image" accept="image/jpeg,image/png,image/webp" class="vdc-dropzone__input" data-dropzone-input>
+        <label for="history_image" class="vdc-dropzone__label" data-dropzone-label {% if page.history_image_path %}hidden{% endif %}>
+          <span class="vdc-dropzone__icon">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          </span>
+          <span class="vdc-dropzone__text">Clique ou arraste uma imagem</span>
+        </label>
+        <div class="vdc-dropzone__preview" data-dropzone-preview {% if not page.history_image_path %}hidden{% endif %}>
+          <img data-dropzone-preview-img src="{{ url_for('static', filename=page.history_image_path) if page.history_image_path else '' }}" alt="Pré-visualização da história">
+          <button type="button" class="vdc-dropzone__remove" data-dropzone-remove aria-label="Remover imagem">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+          </button>
+        </div>
+        <input type="hidden" name="remove_history_image" value="0" data-dropzone-remove-flag>
+      </div>
+
+      <div class="vdc-field vdc-field--full vdc-field--textarea">
+        <span class="vdc-field__icon">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
+        </span>
+        <span class="vdc-field__body">
+          <label for="history">Texto da história</label>
+          <textarea class="vdc-field__input vdc-field__input--tall" id="history" name="history" rows="10" placeholder="Conte a história da VDC. Deixe uma linha em branco entre um parágrafo e outro.">{{ page.history }}</textarea>
+        </span>
+      </div>
+
+      <div class="vdc-wizard__grid">
+        <div class="vdc-field">
+          <span class="vdc-field__icon">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+          </span>
+          <span class="vdc-field__body">
+            <label for="badge_value">Selo sobre a foto — valor</label>
+            <input class="vdc-field__input" type="text" id="badge_value" name="badge_value" placeholder="Ex.: 2015" value="{{ page.badge_value }}">
+          </span>
+        </div>
+        <div class="vdc-field">
+          <span class="vdc-field__icon">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          </span>
+          <span class="vdc-field__body">
+            <label for="badge_label">Selo sobre a foto — rótulo</label>
+            <input class="vdc-field__input" type="text" id="badge_label" name="badge_label" placeholder="Ex.: Vitória da Conquista - BA" value="{{ page.badge_label }}">
+          </span>
+        </div>
+      </div>
+
+      <p class="vdc-eyebrow vdc-admin__section-label" style="margin-top: var(--vdc-space-7);">Missão, visão e valores</p>
+
+      <div class="vdc-field vdc-field--full vdc-field--textarea">
+        <span class="vdc-field__icon">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2L4.5 13H11l-1 9 8.5-11H12z"/></svg>
+        </span>
+        <span class="vdc-field__body">
+          <label for="mission">Missão</label>
+          <textarea class="vdc-field__input" id="mission" name="mission" rows="3">{{ page.mission }}</textarea>
+        </span>
+      </div>
+
+      <div class="vdc-field vdc-field--full vdc-field--textarea">
+        <span class="vdc-field__icon">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+        </span>
+        <span class="vdc-field__body">
+          <label for="vision">Visão</label>
+          <textarea class="vdc-field__input" id="vision" name="vision" rows="3">{{ page.vision }}</textarea>
+        </span>
+      </div>
+
+      <div class="vdc-field vdc-field--full vdc-field--textarea">
+        <span class="vdc-field__icon">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21c-.3 0-.6-.1-.8-.3C8.7 18.9 3 14.2 3 9.3 3 6.4 5.3 4 8.2 4c1.6 0 3.1.8 4 2 .9-1.2 2.4-2 4-2C18.7 4 21 6.4 21 9.3c0 4.9-5.7 9.6-8.2 11.4-.2.2-.5.3-.8.3z"/></svg>
+        </span>
+        <span class="vdc-field__body">
+          <label for="values_list">Valores (um por linha)</label>
+          <textarea class="vdc-field__input" id="values_list" name="values_list" rows="6" placeholder="Ética&#10;Transparência&#10;Responsabilidade técnica">{{ page.values_list }}</textarea>
+        </span>
+      </div>
+    </div>
+
+    <div class="vdc-wizard__nav" style="justify-content: flex-end; margin-top: var(--vdc-space-7);">
+      <a href="{{ url_for('about') }}" class="vdc-btn vdc-btn--secondary" target="_blank" rel="noopener">Ver página</a>
+      <button type="submit" class="vdc-btn vdc-btn--primary">
+        Salvar alterações
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </button>
+    </div>
+  </form>
+
+  <a href="{{ url_for('index') }}" class="vdc-btn vdc-btn--secondary vdc-admin__back">← Voltar para a home</a>
+</div>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

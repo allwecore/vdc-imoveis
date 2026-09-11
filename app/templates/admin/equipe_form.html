@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<script>document.documentElement.classList.add('js');</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin · {{ 'Editar integrante' if member else 'Novo integrante' }} | VDC Imóveis</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700&family=Hanken+Grotesk:wght@400;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+</head>
+<body class="vdc-admin">
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+  <div class="vdc-flash-stack" data-flash-stack>
+    {% for category, message in messages %}
+    <div class="vdc-flash vdc-flash--{{ category }}"
+         role="{{ 'alert' if category == 'error' else 'status' }}"
+         aria-live="{{ 'assertive' if category == 'error' else 'polite' }}"
+         data-flash>
+      <span>{{ message }}</span>
+      <button type="button" class="vdc-flash__close" data-flash-close aria-label="Fechar aviso">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+{% endwith %}
+
+<div class="vdc-admin__bar">
+  <div class="vdc-container vdc-admin__bar-inner">
+    <nav class="vdc-admin__nav" aria-label="Seções do admin">
+      <a href="{{ url_for('admin_properties') }}">Imóveis</a>
+      <a href="{{ url_for('admin_hero') }}">Hero</a>
+      <a href="{{ url_for('admin_news') }}">Notícias</a>
+      <a href="{{ url_for('admin_about') }}">Quem somos</a>
+      <a href="{{ url_for('admin_team') }}" class="is-current">Equipe</a>
+      <a href="{{ url_for('admin_settings') }}">Configurações</a>
+      <form action="{{ url_for('admin_logout') }}" method="post" class="vdc-admin__nav-logout">
+        <button type="submit">Sair</button>
+      </form>
+    </nav>
+    <span class="vdc-eyebrow vdc-admin__eyebrow">{{ 'Editando' if member else 'Novo cadastro' }}</span>
+    <h1 class="vdc-h2 vdc-admin__title">{{ member.name if member else 'Cadastrar integrante' }}</h1>
+    <p class="vdc-body vdc-admin__subtitle">Aparece na seção "Quem está na mesa" da home, na ordem definida em Equipe.</p>
+  </div>
+</div>
+
+<div class="vdc-container vdc-admin__content">
+  <form class="vdc-wizard" style="margin: 0;" action="{{ url_for('admin_team_edit', member_id=member.id) if member else url_for('admin_team_new') }}" method="post" enctype="multipart/form-data" data-submit-feedback>
+    <div class="vdc-wizard__body" style="min-height: 0;">
+      <label class="vdc-wizard__panel-label" style="font: 600 13px var(--vdc-font-display); color: var(--vdc-navy-700); display: block; margin-bottom: var(--vdc-space-3);">Foto (opcional — sem foto, o site usa o avatar de iniciais)</label>
+      <div class="vdc-dropzone" data-dropzone>
+        <input type="file" name="photo" id="photo" accept="image/jpeg,image/png,image/webp" class="vdc-dropzone__input" data-dropzone-input>
+        <label for="photo" class="vdc-dropzone__label" data-dropzone-label {% if member and member.photo_path %}hidden{% endif %}>
+          <span class="vdc-dropzone__icon">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          </span>
+          <span class="vdc-dropzone__text">Clique ou arraste uma foto</span>
+        </label>
+        <div class="vdc-dropzone__preview" data-dropzone-preview {% if not (member and member.photo_path) %}hidden{% endif %}>
+          <img data-dropzone-preview-img src="{{ url_for('static', filename=member.photo_path) if member and member.photo_path else '' }}" alt="Pré-visualização da foto">
+          <button type="button" class="vdc-dropzone__remove" data-dropzone-remove aria-label="Remover foto">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+          </button>
+        </div>
+        <input type="hidden" name="remove_image" value="0" data-dropzone-remove-flag>
+      </div>
+
+      <div class="vdc-wizard__grid">
+        <div class="vdc-field">
+          <span class="vdc-field__icon">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21a8 8 0 1 0-16 0"/><circle cx="12" cy="7" r="4"/></svg>
+          </span>
+          <span class="vdc-field__body">
+            <label for="name">Nome <span class="vdc-required" aria-hidden="true">*</span></label>
+            <input class="vdc-field__input" type="text" id="name" name="name" required placeholder="Ex.: Deyse Fontes" value="{{ member.name if member else '' }}">
+          </span>
+        </div>
+        <div class="vdc-field">
+          <span class="vdc-field__icon">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 9h1M8 9h1"/></svg>
+          </span>
+          <span class="vdc-field__body">
+            <label for="initials">Iniciais do avatar <span class="vdc-required" aria-hidden="true">*</span></label>
+            <input class="vdc-field__input" type="text" id="initials" name="initials" required maxlength="2" placeholder="Ex.: DF" style="text-transform:uppercase;" value="{{ member.initials if member else '' }}">
+          </span>
+        </div>
+      </div>
+
+      <div class="vdc-wizard__grid">
+        <div class="vdc-field">
+          <span class="vdc-field__icon">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12l4-4 4 3 3-3 4 4"/><path d="M8 11l3 3-2 2"/><path d="M16 11l-3 3 2 2"/></svg>
+          </span>
+          <span class="vdc-field__body">
+            <label for="role">Função <span class="vdc-required" aria-hidden="true">*</span></label>
+            <input class="vdc-field__input" type="text" id="role" name="role" required placeholder="Ex.: Engenharia Civil" value="{{ member.role if member else '' }}">
+          </span>
+        </div>
+        <div class="vdc-field">
+          <span class="vdc-field__icon">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l2.2 5.6 6 .5-4.6 3.9 1.5 5.8L12 14.9 6.9 17.8l1.5-5.8-4.6-3.9 6-.5z"/></svg>
+          </span>
+          <span class="vdc-field__body">
+            <label for="credential">Registro profissional</label>
+            <input class="vdc-field__input" type="text" id="credential" name="credential" placeholder="Ex.: CREA-BA" value="{{ member.credential if member else '' }}">
+          </span>
+        </div>
+      </div>
+
+
+      <div class="vdc-field vdc-field--full vdc-field--textarea">
+        <span class="vdc-field__icon">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
+        </span>
+        <span class="vdc-field__body">
+          <label for="bio">Sobre a pessoa (aparece na aba Equipe do site)</label>
+          <textarea class="vdc-field__input" id="bio" name="bio" rows="6" placeholder="Formação, experiência e o que essa pessoa faz na VDC. Deixe uma linha em branco entre parágrafos.">{{ member.bio if member else '' }}</textarea>
+        </span>
+      </div>
+
+      <label class="vdc-toggle" style="margin-top: var(--vdc-space-5);">
+        <input type="checkbox" name="placeholder" {% if member and member.placeholder %}checked{% endif %}>
+        <span class="vdc-toggle__track"><span class="vdc-toggle__thumb"></span></span>
+        <span class="vdc-toggle__label">Vaga em preenchimento (sem nome real ainda — mostra o card com anel tracejado e a etiqueta "Vaga em preenchimento" em vez do nome real)</span>
+      </label>
+    </div>
+
+    <div class="vdc-wizard__nav" style="justify-content: flex-end; margin-top: var(--vdc-space-7);">
+      <a href="{{ url_for('admin_team') }}" class="vdc-btn vdc-btn--secondary">Cancelar</a>
+      <button type="submit" class="vdc-btn vdc-btn--primary">
+        {{ 'Salvar alterações' if member else 'Cadastrar integrante' }}
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </button>
+    </div>
+  </form>
+
+  <a href="{{ url_for('admin_team') }}" class="vdc-btn vdc-btn--secondary vdc-admin__back">← Voltar para a equipe</a>
+</div>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
