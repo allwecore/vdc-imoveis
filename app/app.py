@@ -34,11 +34,19 @@ def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
     db.init_app(app)
-    os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
-    os.makedirs(app.config["PROPERTY_UPLOAD_FOLDER"], exist_ok=True)
-    os.makedirs(app.config["POST_UPLOAD_FOLDER"], exist_ok=True)
-    os.makedirs(app.config["TEAM_UPLOAD_FOLDER"], exist_ok=True)
-    os.makedirs(app.config["ABOUT_UPLOAD_FOLDER"], exist_ok=True)
+    for folder_key in (
+        "UPLOAD_FOLDER",
+        "PROPERTY_UPLOAD_FOLDER",
+        "POST_UPLOAD_FOLDER",
+        "TEAM_UPLOAD_FOLDER",
+        "ABOUT_UPLOAD_FOLDER",
+    ):
+        try:
+            os.makedirs(app.config[folder_key], exist_ok=True)
+        except OSError:
+            # Read-only filesystem (e.g. Vercel serverless) — uploads need
+            # external storage there; startup should still succeed.
+            pass
 
     @app.context_processor
     def inject_globals():
