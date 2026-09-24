@@ -6,7 +6,7 @@
 {% include "partials/header.html" %}
 
 <section class="vdc-about__hero{% if not page.hero_image_path %} vdc-about__hero--plain{% endif %}"
-         {% if page.hero_image_path %}style="background-image: url('{{ url_for('static', filename=page.hero_image_path) }}');"{% endif %}>
+         {% if page.hero_image_path %}style="background-image: url('{{ asset_url(page.hero_image_path) }}');"{% endif %}>
   <div class="vdc-container vdc-about__hero-inner">
     <nav class="vdc-about__crumbs" aria-label="Você está aqui">
       <a href="{{ url_for('index') }}">Início</a>
@@ -53,7 +53,7 @@
 
     {% if page.history_image_path %}
     <div class="vdc-about__story-media">
-      <img src="{{ url_for('static', filename=page.history_image_path) }}" alt="VDC Imóveis">
+      <img src="{{ asset_url(page.history_image_path) }}" alt="VDC Imóveis">
       {% if page.badge_value %}
       <div class="vdc-about__badge">
         <strong>{{ page.badge_value }}</strong>

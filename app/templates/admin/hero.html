@@ -87,7 +87,7 @@
   <div class="vdc-admin__grid">
     {% for slide in slides %}
     <div class="vdc-admin__card {% if not slide.active %}is-inactive{% endif %}">
-      <div class="vdc-admin__thumb" style="background-image:url('{{ url_for('static', filename=slide.image_path) }}');" role="img" aria-label="{{ slide.alt_text }}"></div>
+      <div class="vdc-admin__thumb" style="background-image:url('{{ asset_url(slide.image_path) }}');" role="img" aria-label="{{ slide.alt_text }}"></div>
       <div class="vdc-admin__card-body">
         <p class="vdc-small vdc-admin__card-desc">{{ slide.alt_text }}</p>
         <span class="vdc-caption vdc-admin__card-meta {{ 'vdc-admin__card-meta--active' if slide.active else 'vdc-admin__card-meta--paused' }}">

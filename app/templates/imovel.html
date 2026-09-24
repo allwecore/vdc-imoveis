@@ -45,7 +45,7 @@
           <div class="vdc-gallery__main vdc-property__cover--{{ prop.cover_tone }}">
             {% if prop.photos %}
             <img class="vdc-gallery__main-img" data-gallery-main-img
-                 src="{{ url_for('static', filename=prop.photos[0].url) }}"
+                 src="{{ asset_url(prop.photos[0].url) }}"
                  alt="{{ prop.title }} — foto 1 de {{ prop.photos|length }}"
                  tabindex="0" role="button" aria-label="Ver foto em tela cheia">
             {% else %}
@@ -76,12 +76,12 @@
           <div class="vdc-gallery__thumbs">
             {% for photo in prop.photos[1:5] %}
             <button type="button" class="vdc-gallery__thumb" data-gallery-thumb data-index="{{ loop.index }}">
-              <img src="{{ url_for('static', filename=photo.thumb_url or photo.url) }}" alt="{{ prop.title }} — miniatura {{ loop.index + 1 }}" loading="lazy">
+              <img src="{{ asset_url(photo.thumb_url or photo.url) }}" alt="{{ prop.title }} — miniatura {{ loop.index + 1 }}" loading="lazy">
             </button>
             {% endfor %}
             {% if prop.photos|length > 5 %}
             <button type="button" class="vdc-gallery__thumb vdc-gallery__thumb--more" data-gallery-open data-index="5" aria-label="Ver todas as {{ prop.photos|length }} fotos">
-              <img src="{{ url_for('static', filename=prop.photos[5].thumb_url or prop.photos[5].url) }}" alt="" loading="lazy">
+              <img src="{{ asset_url(prop.photos[5].thumb_url or prop.photos[5].url) }}" alt="" loading="lazy">
               <span>+{{ prop.photos|length - 5 }} fotos</span>
             </button>
             {% endif %}

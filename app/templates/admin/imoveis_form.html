@@ -294,7 +294,7 @@
           <div class="vdc-photos__grid" data-photos-grid>
             {% for photo in (prop.photos if prop else []) %}
             <div class="vdc-photos__item" draggable="true" data-photo-item data-photo-ref="existing:{{ photo.id }}">
-              <img class="vdc-photos__thumb" src="{{ url_for('static', filename=photo.thumb_url or photo.url) }}" alt="" draggable="false">
+              <img class="vdc-photos__thumb" src="{{ asset_url(photo.thumb_url or photo.url) }}" alt="" draggable="false">
               <span class="vdc-photos__primary-badge" data-photo-primary-badge {% if not photo.is_primary %}hidden{% endif %}>Principal</span>
               <div class="vdc-photos__actions">
                 <button type="button" class="vdc-photos__action" data-photo-star aria-label="Tornar foto principal" aria-pressed="{{ 'true' if photo.is_primary else 'false' }}">

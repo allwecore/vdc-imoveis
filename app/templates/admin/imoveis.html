@@ -75,7 +75,7 @@
     <article class="vdc-admin__prop-card">
       <div class="vdc-admin__prop-photo vdc-admin__prop-photo--{{ p.cover_tone }}">
         {% if p.image_path %}
-        <img src="{{ url_for('static', filename=p.image_path) }}" alt="">
+        <img src="{{ asset_url(p.image_path) }}" alt="">
         {% else %}
         {{ property_cover_icon(p.property_type) }}
         {% endif %}

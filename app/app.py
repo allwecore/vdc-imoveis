@@ -11,6 +11,7 @@ from werkzeug.utils import secure_filename
 import content
 import geocoding
 import image_processing
+import storage
 from config import Config
 from extensions import db
 from models import (
@@ -52,7 +53,24 @@ def create_app():
     def inject_globals():
         return {"current_year": datetime.now(timezone.utc).year}
 
+    app.jinja_env.globals["asset_url"] = asset_url
+
     return app
+
+
+def asset_url(path):
+    """URL de uma imagem enviada pelo admin: se já é uma URL do Supabase
+    Storage (upload novo), devolve como está; senão é um caminho relativo
+    a /static (imagem antiga, versionada no repo) e passa por url_for
+    normalmente. Use isto em vez de url_for('static', ...) para qualquer
+    campo de imagem que vem do banco (fotos de imóvel, hero, equipe,
+    notícias, "quem somos") — não para os assets fixos do site (css/js/
+    logo), que continuam sempre locais."""
+    if not path:
+        return ""
+    if path.startswith("http://") or path.startswith("https://"):
+        return path
+    return url_for("static", filename=path)
 
 
 app = create_app()
@@ -73,28 +91,42 @@ def allowed_image(filename):
 
 
 def _save_upload(file, config_key, subfolder):
-    """Salva uma imagem enviada na pasta indicada e devolve o caminho
-    relativo a /static (ou None se não veio arquivo). Upload simples,
-    1 arquivo por vez — usada por equipe, "quem somos", notícias e hero.
-    A galeria de fotos do imóvel usa um caminho próprio, com
-    redimensionamento e miniatura (ver image_processing.py e
-    _apply_property_photos)."""
+    """Salva uma imagem enviada e devolve o caminho a guardar no banco
+    (URL do Supabase Storage quando configurado; senão um caminho
+    relativo a /static, para rodar local sem bucket) — ou None se não
+    veio arquivo. Upload simples, 1 arquivo por vez — usada por equipe,
+    "quem somos", notícias e hero. A galeria de fotos do imóvel usa um
+    caminho próprio, com redimensionamento e miniatura (ver
+    image_processing.py e _apply_property_photos)."""
     if not file or file.filename == "":
         return None, None
     if not allowed_image(file.filename):
         return None, "Formato de imagem não suportado. Use JPG, PNG ou WEBP."
     extension = secure_filename(file.filename).rsplit(".", 1)[1].lower()
     stored_name = f"{uuid.uuid4().hex}.{extension}"
-    file.save(os.path.join(app.config[config_key], stored_name))
+    data = file.read()
+    if storage.enabled:
+        try:
+            return storage.upload_public(f"{subfolder}/{stored_name}", data), None
+        except RuntimeError as err:
+            return None, str(err)
+    with open(os.path.join(app.config[config_key], stored_name), "wb") as fh:
+        fh.write(data)
     return f"uploads/{subfolder}/{stored_name}", None
 
 
 def _delete_upload(image_path):
     if not image_path:
         return
+    if storage.is_managed_url(image_path):
+        storage.delete_public(storage.remote_path_from_url(image_path))
+        return
     file_path = os.path.join(os.path.dirname(__file__), "static", image_path)
-    if os.path.exists(file_path):
-        os.remove(file_path)
+    try:
+        if os.path.exists(file_path):
+            os.remove(file_path)
+    except OSError:
+        pass  # filesystem somente leitura (Vercel) — imagem antiga fica órfã, sem quebrar a requisição
 
 
 def header_context():
@@ -386,13 +418,14 @@ def admin_hero_upload():
         flash("Formato não suportado. Use JPG, PNG ou WEBP.", "error")
         return redirect(url_for("admin_hero"))
 
-    extension = secure_filename(file.filename).rsplit(".", 1)[1].lower()
-    stored_name = f"{uuid.uuid4().hex}.{extension}"
-    file.save(os.path.join(app.config["UPLOAD_FOLDER"], stored_name))
+    image_path, image_error = _save_upload(file, "UPLOAD_FOLDER", "hero")
+    if image_error:
+        flash(image_error, "error")
+        return redirect(url_for("admin_hero"))
 
     max_order = db.session.query(db.func.max(HeroSlide.sort_order)).scalar() or 0
     slide = HeroSlide(
-        image_path=f"uploads/hero/{stored_name}",
+        image_path=image_path,
         alt_text=alt_text or "Imóvel VDC Imóveis",
         sort_order=max_order + 1,
         active=True,
@@ -737,9 +770,15 @@ def _validate_property_payload(data):
 def _delete_property_image_file(image_path):
     if not image_path:
         return
+    if storage.is_managed_url(image_path):
+        storage.delete_public(storage.remote_path_from_url(image_path))
+        return
     file_path = os.path.join(os.path.dirname(__file__), "static", image_path)
-    if os.path.exists(file_path):
-        os.remove(file_path)
+    try:
+        if os.path.exists(file_path):
+            os.remove(file_path)
+    except OSError:
+        pass  # filesystem somente leitura (Vercel) — imagem antiga fica órfã, sem quebrar a requisição
 
 
 def _delete_photo_files(photo):
@@ -817,14 +856,24 @@ def _apply_property_photos(prop, form, files):
             erro = erro_arquivo
             continue
         full_name, thumb_name = f"{nome_base}.jpg", f"{nome_base}_thumb.jpg"
-        pasta = app.config["PROPERTY_UPLOAD_FOLDER"]
-        with open(os.path.join(pasta, full_name), "wb") as fh:
-            fh.write(full_bytes)
-        with open(os.path.join(pasta, thumb_name), "wb") as fh:
-            fh.write(thumb_bytes)
+        if storage.enabled:
+            try:
+                full_url = storage.upload_public(f"imoveis/{full_name}", full_bytes, "image/jpeg")
+                thumb_url = storage.upload_public(f"imoveis/{thumb_name}", thumb_bytes, "image/jpeg")
+            except RuntimeError as err:
+                erro = str(err)
+                continue
+        else:
+            pasta = app.config["PROPERTY_UPLOAD_FOLDER"]
+            with open(os.path.join(pasta, full_name), "wb") as fh:
+                fh.write(full_bytes)
+            with open(os.path.join(pasta, thumb_name), "wb") as fh:
+                fh.write(thumb_bytes)
+            full_url = f"uploads/imoveis/{full_name}"
+            thumb_url = f"uploads/imoveis/{thumb_name}"
         photo = PropertyPhoto(
-            url=f"uploads/imoveis/{full_name}",
-            thumb_url=f"uploads/imoveis/{thumb_name}",
+            url=full_url,
+            thumb_url=thumb_url,
             sort_order=0, is_primary=False,
         )
         # prop.photos.append (não db.session.add + property_id solto):
@@ -1023,24 +1072,13 @@ def admin_properties_delete(property_id):
 
 
 def _save_post_image(file):
-    """Valida e salva a imagem de capa da notícia; devolve o caminho
-    relativo (ou None se não veio arquivo)."""
-    if not file or file.filename == "":
-        return None, None
-    if not allowed_image(file.filename):
-        return None, "Formato de imagem não suportado. Use JPG, PNG ou WEBP."
-    extension = secure_filename(file.filename).rsplit(".", 1)[1].lower()
-    stored_name = f"{uuid.uuid4().hex}.{extension}"
-    file.save(os.path.join(app.config["POST_UPLOAD_FOLDER"], stored_name))
-    return f"uploads/noticias/{stored_name}", None
+    """Valida e salva a imagem de capa da notícia; devolve o caminho a
+    guardar no banco (ou None se não veio arquivo)."""
+    return _save_upload(file, "POST_UPLOAD_FOLDER", "noticias")
 
 
 def _delete_post_image_file(image_path):
-    if not image_path:
-        return
-    file_path = os.path.join(os.path.dirname(__file__), "static", image_path)
-    if os.path.exists(file_path):
-        os.remove(file_path)
+    _delete_property_image_file(image_path)
 
 
 def _unique_slug(title, post_id=None):

@@ -16,7 +16,7 @@
     <span class="vdc-news__meta vdc-post__meta">{{ post.date_formatted }} · {{ post.reading_minutes }} min de leitura</span>
 
     {% if post.image_path %}
-    <img class="vdc-post__cover" src="{{ url_for('static', filename=post.image_path) }}" alt="{{ post.title }}">
+    <img class="vdc-post__cover" src="{{ asset_url(post.image_path) }}" alt="{{ post.title }}">
     {% endif %}
 
     {% if post.excerpt %}<p class="vdc-post__excerpt">{{ post.excerpt }}</p>{% endif %}
@@ -48,7 +48,7 @@
       <a href="{{ url_for('news_post', slug=item.slug) }}" class="vdc-news__card">
         <span class="vdc-news__card-media">
           {% if item.image_path %}
-          <img src="{{ url_for('static', filename=item.image_path) }}" alt="{{ item.title }}" loading="lazy">
+          <img src="{{ asset_url(item.image_path) }}" alt="{{ item.title }}" loading="lazy">
           {% else %}
           <span class="vdc-news__placeholder" aria-hidden="true">
             <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h13a2 2 0 0 1 2 2v10a2 2 0 0 0 2 2H6a2 2 0 0 1-2-2z"/><path d="M8 9h7M8 13h7M8 17h4"/></svg>

@@ -72,7 +72,7 @@
     <a class="vdc-property__cover-link" href="{{ url_for('property_detail', property_id=p.id) }}"
        aria-label="Ver detalhes de {{ p.title }}">
       {% if p.image_path %}
-      <img class="vdc-property__photo" src="{{ url_for('static', filename=p.image_path) }}" alt="{{ p.title }}" loading="lazy">
+      <img class="vdc-property__photo" src="{{ asset_url(p.image_path) }}" alt="{{ p.title }}" loading="lazy">
       {% else %}
       {{ property_cover_icon(p.property_type) }}
       {% endif %}

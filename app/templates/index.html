@@ -8,7 +8,7 @@
   <div class="vdc-hero__slides">
     {% for slide in hero_slides %}
     <div class="vdc-hero__slide {% if loop.first %}is-active{% endif %}"
-         style="background-image:url('{{ url_for('static', filename=slide.image_path) }}');"
+         style="background-image:url('{{ asset_url(slide.image_path) }}');"
          role="img" aria-label="{{ slide.alt_text }}"></div>
     {% else %}
     <div class="vdc-hero__slide vdc-hero__slide--fallback is-active">

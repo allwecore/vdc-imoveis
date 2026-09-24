@@ -61,7 +61,7 @@
           <span class="vdc-dropzone__text">Clique ou arraste uma foto</span>
         </label>
         <div class="vdc-dropzone__preview" data-dropzone-preview {% if not (member and member.photo_path) %}hidden{% endif %}>
-          <img data-dropzone-preview-img src="{{ url_for('static', filename=member.photo_path) if member and member.photo_path else '' }}" alt="Pré-visualização da foto">
+          <img data-dropzone-preview-img src="{{ asset_url(member.photo_path) if member and member.photo_path else '' }}" alt="Pré-visualização da foto">
           <button type="button" class="vdc-dropzone__remove" data-dropzone-remove aria-label="Remover foto">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
           </button>

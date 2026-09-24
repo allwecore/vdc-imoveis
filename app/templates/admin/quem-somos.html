@@ -64,7 +64,7 @@
           <span class="vdc-dropzone__text">Clique ou arraste uma imagem</span>
         </label>
         <div class="vdc-dropzone__preview" data-dropzone-preview {% if not page.hero_image_path %}hidden{% endif %}>
-          <img data-dropzone-preview-img src="{{ url_for('static', filename=page.hero_image_path) if page.hero_image_path else '' }}" alt="Pré-visualização do topo">
+          <img data-dropzone-preview-img src="{{ asset_url(page.hero_image_path) if page.hero_image_path else '' }}" alt="Pré-visualização do topo">
           <button type="button" class="vdc-dropzone__remove" data-dropzone-remove aria-label="Remover imagem">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
           </button>
@@ -136,7 +136,7 @@
           <span class="vdc-dropzone__text">Clique ou arraste uma imagem</span>
         </label>
         <div class="vdc-dropzone__preview" data-dropzone-preview {% if not page.history_image_path %}hidden{% endif %}>
-          <img data-dropzone-preview-img src="{{ url_for('static', filename=page.history_image_path) if page.history_image_path else '' }}" alt="Pré-visualização da história">
+          <img data-dropzone-preview-img src="{{ asset_url(page.history_image_path) if page.history_image_path else '' }}" alt="Pré-visualização da história">
           <button type="button" class="vdc-dropzone__remove" data-dropzone-remove aria-label="Remover imagem">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
           </button>
