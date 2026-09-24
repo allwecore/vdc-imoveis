@@ -36,11 +36,13 @@
         <div class="vdc-gallery{% if not prop.photos %} vdc-gallery--empty{% endif %}"
              data-gallery
              data-gallery-title="{{ prop.title }}"
-             {# photo.url é o caminho salvo no banco (sem o /static/ na
-                frente) — precisa passar por url_for aqui, senão o JS
-                troca a foto principal pra um src quebrado. map()+tojson
-                sozinho dumpava o valor cru; por isso o loop manual. #}
-             data-photos='[{% for photo in prop.photos %}{{ url_for("static", filename=photo.url) | tojson }}{% if not loop.last %},{% endif %}{% endfor %}]'>
+             {# photo.url é o caminho salvo no banco — asset_url() decide
+                se é uma URL do Supabase Storage (upload novo) ou um
+                caminho relativo a /static (foto antiga, versionada no
+                repo). Sem isso o JS troca a foto principal pra um src
+                quebrado. map()+tojson sozinho dumpava o valor cru; por
+                isso o loop manual. #}
+             data-photos='[{% for photo in prop.photos %}{{ asset_url(photo.url) | tojson }}{% if not loop.last %},{% endif %}{% endfor %}]'>
 
           <div class="vdc-gallery__main vdc-property__cover--{{ prop.cover_tone }}">
             {% if prop.photos %}
