@@ -2,7 +2,7 @@ import json
 import os
 import secrets
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from functools import wraps
 
 from flask import Flask, flash, redirect, render_template, request, session, url_for
@@ -20,6 +20,7 @@ from models import (
     AboutPage,
     HeroSlide,
     Lead,
+    LoginAttempt,
     Post,
     Property,
     PropertyPhoto,
@@ -367,12 +368,46 @@ def contato():
     return redirect(url_for("index") + "#contato")
 
 
+LOGIN_MAX_ATTEMPTS = 5
+LOGIN_LOCKOUT_MINUTES = 15
+
+
+def _client_ip():
+    """IP de quem fez a requisição. Atrás do proxy da Vercel, o IP real
+    vem em X-Forwarded-For (o primeiro da lista); request.remote_addr
+    sozinho seria sempre o IP interno do proxy."""
+    forwarded = request.headers.get("X-Forwarded-For", "")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.remote_addr or "desconhecido"
+
+
+def _failed_login_attempts(ip):
+    """Quantas tentativas erradas esse IP tem na janela de bloqueio.
+    Aproveita a consulta para limpar as tentativas já fora da janela —
+    não precisa de um job de limpeza à parte para a tabela não crescer
+    à toa."""
+    limite = datetime.now(timezone.utc) - timedelta(minutes=LOGIN_LOCKOUT_MINUTES)
+    LoginAttempt.query.filter(LoginAttempt.ip_address == ip, LoginAttempt.attempted_at < limite).delete()
+    db.session.commit()
+    return LoginAttempt.query.filter(LoginAttempt.ip_address == ip).count()
+
+
 @app.route("/admin/login", methods=["GET", "POST"])
 def admin_login():
     next_url = request.values.get("next") or url_for("admin_properties")
 
     if request.method == "GET":
         return render_template("admin/login.html", next=next_url)
+
+    ip = _client_ip()
+    tentativas = _failed_login_attempts(ip)
+    if tentativas >= LOGIN_MAX_ATTEMPTS:
+        flash(
+            f"Muitas tentativas erradas. Aguarde {LOGIN_LOCKOUT_MINUTES} minutos antes de tentar de novo.",
+            "error",
+        )
+        return redirect(url_for("admin_login", next=next_url))
 
     password = request.form.get("password", "")
     admin_password = app.config["ADMIN_PASSWORD"]
@@ -382,7 +417,13 @@ def admin_login():
         return redirect(url_for("admin_login", next=next_url))
 
     if not secrets.compare_digest(password, admin_password):
-        flash("Senha incorreta.", "error")
+        db.session.add(LoginAttempt(ip_address=ip))
+        db.session.commit()
+        restantes = LOGIN_MAX_ATTEMPTS - tentativas - 1
+        if restantes <= 0:
+            flash(f"Senha incorreta. Bloqueado por {LOGIN_LOCKOUT_MINUTES} minutos após muitas tentativas erradas.", "error")
+        else:
+            flash(f"Senha incorreta. Mais {restantes} tentativa(s) antes do bloqueio temporário.", "error")
         return redirect(url_for("admin_login", next=next_url))
 
     session.permanent = True

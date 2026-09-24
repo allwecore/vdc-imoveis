@@ -224,6 +224,20 @@ class Post(db.Model):
         return max(1, round(words / 200))
 
 
+class LoginAttempt(db.Model):
+    """Uma tentativa de login errada no /admin/login, por IP — usada só
+    para o bloqueio temporário contra força bruta (ver _login_locked_out
+    e _record_failed_login em app.py). Sem relação com nenhum usuário:
+    o painel tem uma senha só, compartilhada."""
+
+    __tablename__ = "vdc_login_attempts"
+    __table_args__ = {"schema": "vdcimoveis"}
+
+    id = db.Column(db.BigInteger, primary_key=True)
+    ip_address = db.Column(db.Text, nullable=False)
+    attempted_at = db.Column(db.DateTime(timezone=True), server_default=db.func.now())
+
+
 class Lead(db.Model):
     __tablename__ = "vdc_leads"
     __table_args__ = {"schema": "vdcimoveis"}
